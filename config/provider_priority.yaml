@@ -2,6 +2,7 @@ providers:
   tushare:
     priority: 1
     enabled: true
+    token_placeholder: ""
 
   akshare:
     priority: 2
@@ -29,4 +30,3 @@ field_mapping:
 
 conflict_resolution:
   strategy: priority_based
-

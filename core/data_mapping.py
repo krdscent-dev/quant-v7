@@ -17,9 +17,12 @@ from datetime import datetime, timezone
 from typing import Any
 
 from core.factor_registry import DEFAULT_FACTOR_REGISTRY
+from core.financial_cross_validator import FinancialCrossValidator
 from core.provider_router import ProviderRouter
 from data_sources.base import DataProvider
+from data_sources.akshare_provider import AkShareDataProvider
 from data_sources.mock_provider import MockDataProvider
+from data_sources.tushare_provider import TushareDataProvider
 
 
 class DataMappingError(RuntimeError):
@@ -32,6 +35,7 @@ class DataMappingLayer:
     def __init__(self, provider: DataProvider | None = None, router: ProviderRouter | None = None) -> None:
         self.provider = provider or MockDataProvider()
         self.router = router or ProviderRouter()
+        self.cross_validator = FinancialCrossValidator()
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -68,11 +72,51 @@ class DataMappingLayer:
             "timestamp": self._now(),
         }
 
+    def _fetch_financial_summary_bundle(self, company_code: str) -> dict[str, Any]:
+        akshare_provider = AkShareDataProvider()
+        tushare_provider = TushareDataProvider()
+
+        provider = self.router.get_provider_for_field("financial_summary")
+        provider_used = self._provider_name(provider)
+        fallback_used = False
+
+        try:
+            primary_data = dict(getattr(provider, "get_financial_summary")(company_code))
+        except Exception:
+            fallback_used = True
+            provider = self.provider
+            provider_used = self._provider_name(provider)
+            primary_data = dict(getattr(provider, "get_financial_summary")(company_code))
+
+        if primary_data.get("available") is False and provider_used != "MockDataProvider":
+            fallback_used = True
+            provider = self.provider
+            provider_used = self._provider_name(provider)
+            primary_data = dict(getattr(provider, "get_financial_summary")(company_code))
+
+        akshare_data = dict(akshare_provider.get_financial_summary(company_code))
+        tushare_data = dict(tushare_provider.get_financial_summary(company_code))
+        cross_validation_result = self.cross_validator.compare_financial_summary(
+            akshare_summary=akshare_data,
+            tushare_summary=tushare_data,
+        )
+
+        return {
+            "data": primary_data,
+            "provider_used": provider_used,
+            "fallback_used": fallback_used,
+            "confidence_level": cross_validation_result.get("overall_confidence_level", "low"),
+            "cross_validation_result": cross_validation_result,
+            "timestamp": self._now(),
+            "akshare_summary": akshare_data,
+            "tushare_summary": tushare_data,
+        }
+
     def build_factor_input(self, company_code: str) -> dict[str, Any]:
         """Build a standardized factor input bundle for one company."""
 
         company_basic_info = self._fetch_field("company_basic_info", company_code)
-        financial_summary = self._fetch_field("financial_summary", company_code)
+        financial_summary = self._fetch_financial_summary_bundle(company_code)
         order_signals = self._fetch_field("order_signals", company_code)
         news_signals = self._fetch_field("news_signals", company_code)
         theme_signals = self._fetch_field("theme_signals", company_code)

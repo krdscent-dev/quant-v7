@@ -83,3 +83,20 @@ Process:
 
 This flow ensures provider governance is applied before factor standardization,
 while keeping factor calculation separate from source selection.
+
+## 8. Financial Cross Validation Flow
+
+For financial summaries, the governance flow adds a dual-source check:
+
+1. `AkShareDataProvider` returns one financial summary payload
+2. `TushareDataProvider` returns a second financial summary payload
+3. `FinancialCrossValidator` compares the two payloads field by field
+4. `DataMappingLayer` stores the primary payload plus:
+   - `provider_used`
+   - `fallback_used`
+   - `confidence_level`
+   - `cross_validation_result`
+5. Downstream scoring uses the normalized factor input, not raw provider output
+
+This keeps provider selection, cross-source validation, and factor
+standardization in separate layers.

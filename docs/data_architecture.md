@@ -6,9 +6,13 @@ This document describes the data flow of the V8 research engine.
 
 ```mermaid
 flowchart TD
-  A["Data source"] --> B["Factor layer"]
-  B --> C["Scoring layer"]
-  C --> D["Research reports"]
+  A["AkShare"] --> C["FinancialCrossValidator"]
+  B["Tushare"] --> C
+  D["MockDataProvider"] --> E["DataMapping"]
+  C --> E["DataMapping"]
+  E --> F["Factor layer"]
+  F --> G["Scoring layer"]
+  G --> H["Research reports"]
 ```
 
 ## 2. Layer Description
@@ -24,6 +28,12 @@ Current state:
 - AkShare adapter is available as a parallel source layer
 - Tushare adapter is available as a parallel source layer
 - No external API integration is required for the research engine to run
+
+Financial summaries now have a cross-validation step:
+
+- AkShare and Tushare both produce `financial_summary`
+- `FinancialCrossValidator` compares the same fields from both sources
+- `DataMappingLayer` stores the validated payload and metadata
 
 ### Factor layer
 
@@ -87,19 +97,36 @@ Execution order:
 
 This keeps source selection, normalization, and scoring separate.
 
-## 6. AkShare Adapter
+## 6. Financial Summary Cross Validation
+
+For `financial_summary`, the chain is:
+
+`AkShareProvider -> TushareProvider -> FinancialCrossValidator -> DataMapping -> FactorInput`
+
+Output metadata includes:
+
+- `provider_used`
+- `fallback_used`
+- `confidence_level`
+- `cross_validation_result`
+
+The validator records field-level differences and conflict flags so
+downstream research modules can inspect data quality without touching
+provider internals.
+
+## 7. AkShare Adapter
 
 `data_sources/akshare_provider.py` is a thin adapter that may return
 placeholder payloads when AkShare is not installed. It is designed to
 stay source-side only and should not contain factor logic.
 
-## 7. Tushare Adapter
+## 8. Tushare Adapter
 
 `data_sources/tushare_provider.py` mirrors the AkShare adapter
 structure. It is also a thin adapter only, and may return placeholder
 payloads when Tushare is not installed.
 
-## 8. Future Extension
+## 9. Future Extension
 
 Planned future adapters:
 
