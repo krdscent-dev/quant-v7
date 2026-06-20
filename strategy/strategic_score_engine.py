@@ -24,6 +24,7 @@ except ImportError as exc:  # pragma: no cover - runtime dependency guard
     raise SystemExit("PyYAML is required to run strategy/strategic_score_engine.py") from exc
 
 from core.data_mapping import DataMappingLayer
+from src.evidence.evidence_chain_builder import EvidenceChainBuilder
 from data_sources.mock_provider import MockDataProvider
 from factors.order_confirmation_factor import calculate_order_confirmation_score
 
@@ -38,6 +39,7 @@ class StrategicScoreResult:
     strategic_score: float
     factor_breakdown: Mapping[str, float] = field(default_factory=dict)
     score_explanation: str = ""
+    evidence_refs: Mapping[str, Any] = field(default_factory=dict)
 
 
 WEIGHTS: Mapping[str, float] = {
@@ -144,6 +146,11 @@ def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreR
         f"{name} ({code}) 属于 {theme} 主题，战略评分强调中期产业趋势强度。"
         f" 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。"
     )
+    evidence_refs = {}
+    if "evidence_chain" in factor_dict:
+        evidence_refs = {"evidence_chain": factor_dict.get("evidence_chain")}
+    elif "evidence_refs" in factor_dict:
+        evidence_refs = dict(factor_dict.get("evidence_refs", {}))
 
     return StrategicScoreResult(
         code=code,
@@ -152,6 +159,7 @@ def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreR
         strategic_score=round(strategic_score, 2),
         factor_breakdown=factor_breakdown,
         score_explanation=score_explanation,
+        evidence_refs=evidence_refs,
     )
 
 

@@ -13,6 +13,7 @@ from typing import Any, Mapping
 from core.factor_registry import DEFAULT_FACTOR_REGISTRY
 from core.data_mapping import DataMappingLayer
 from strategy.strategic_score_engine import calculate_strategic_score
+from src.evidence.evidence_chain_builder import EvidenceChainBuilder
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,7 @@ class ResearchDecision:
     risk_summary: str = ""
     decision_action: str = "WATCH"
     overall_confidence: float = 1.0
+    evidence_refs: Mapping[str, Any] = field(default_factory=dict)
 
 
 class ResearchEngine:
@@ -154,6 +156,7 @@ class ResearchEngine:
 
         factor_scores = self._calculate_factor_scores(factor_input)
         strategic_result = calculate_strategic_score({**factor_input, **factor_scores})
+        evidence_chain = EvidenceChainBuilder().from_factor_input({**factor_input, **factor_scores})
         theme_exposure = self._theme_exposure(factor_input)
         catalyst_strength = self._catalyst_strength(factor_input)
         order_confirmation_level = self._order_confirmation_level(factor_input, factor_scores)
@@ -185,6 +188,7 @@ class ResearchEngine:
             risk_summary=risk_summary,
             decision_action=decision_action,
             overall_confidence=round(overall_confidence, 2),
+            evidence_refs={"evidence_chain": evidence_chain},
         )
 
 
@@ -197,6 +201,7 @@ def run_research_pipeline(company_code: str) -> dict[str, Any]:
     factor_scores = engine._calculate_factor_scores(factor_input)
     strategic_result = calculate_strategic_score({**factor_input, **factor_scores})
     decision = engine.analyze({**factor_input, **factor_scores})
+    evidence_chain = decision.evidence_refs.get("evidence_chain") if isinstance(decision.evidence_refs, Mapping) else None
 
     return {
         "company_code": company_code,
@@ -225,6 +230,8 @@ def run_research_pipeline(company_code: str) -> dict[str, Any]:
         "order_confirmation_level": decision.order_confirmation_level,
         "risk_summary": decision.risk_summary,
         "research_conclusion": decision.research_conclusion,
+        "evidence_refs": decision.evidence_refs,
+        "evidence_summary": EvidenceChainBuilder().to_dict(evidence_chain) if evidence_chain is not None else {},
     }
 
 

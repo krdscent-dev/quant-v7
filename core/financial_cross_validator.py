@@ -1,4 +1,4 @@
-"""Financial cross validation between AkShare and Tushare.
+﻿"""Financial cross validation between AkShare and Tushare.
 
 This layer compares provider-level financial summaries before factor
 mapping. It is intentionally source-facing only and does not depend on
@@ -110,6 +110,7 @@ class FinancialCrossValidator:
                 "difference_ratio": difference_ratio,
                 "confidence_level": confidence_level,
                 "conflict_flags": flags,
+                "validation_status": _validation_status_from_confidence(confidence_level, flags),
             }
 
         if any_conflict:
@@ -119,6 +120,27 @@ class FinancialCrossValidator:
 
         return {
             "overall_confidence_level": overall_confidence,
+            "overall_confidence": _confidence_score(overall_confidence),
             "field_results": result_fields,
+            "validation_status": _validation_status_from_confidence(overall_confidence, [
+                flag for item in result_fields.values() for flag in item.get("conflict_flags", [])
+            ]),
         }
 
+
+def _confidence_score(level: str) -> float:
+    mapping = {"high": 1.0, "medium": 0.75, "low": 0.35}
+    return mapping.get(str(level).lower(), 0.0)
+
+
+def _validation_status_from_confidence(level: str, conflict_flags: list[str]) -> str:
+    level = str(level).lower()
+    if "both_sources_missing" in conflict_flags:
+        return "INVALID"
+    if "material_difference" in conflict_flags or "core_metric_divergence" in conflict_flags:
+        return "MAJOR_DIFF"
+    if level == "high":
+        return "PASS"
+    if level == "medium":
+        return "MINOR_DIFF"
+    return "MISSING"

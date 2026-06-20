@@ -74,6 +74,7 @@ def build_weekly_report_data() -> list[dict[str, Any]]:
                 "factor_input_summary": result["factor_input_summary"],
                 "factor_scores": result["factor_scores"],
                 "theme_exposure": result["theme_exposure"],
+                "evidence_summary": result.get("evidence_summary", {}),
             }
         )
     return sorted(rows, key=lambda row: row["strategic_score"], reverse=True)
@@ -194,6 +195,11 @@ def generate_weekly_report() -> Path:
     lines.append("## 7. Research Conclusions")
     for rank, row in enumerate(rows[:10], start=1):
         lines.append(f"- {rank}. {row['name']}: {row['research_conclusion']}")
+    lines.append("")
+    lines.append("## 8. Evidence Summary")
+    for rank, row in enumerate(rows[:5], start=1):
+        evidence = row.get("evidence_summary", {})
+        lines.append(f"- {rank}. {row['name']} overall_confidence={evidence.get('overall_confidence', 0.0):.2f}")
     lines.append("")
 
     output_path = base_dir / "reports" / "weekly_report.md"
