@@ -22,6 +22,7 @@ from core.research_engine import run_research_pipeline
 from core.provider_router import ProviderRouter
 from src.portfolio.portfolio_scoring_engine import PortfolioScoringEngine
 from src.position.position_sizing_engine import PositionSizingEngine
+from src.risk.risk_management_engine import RiskManagementEngine
 from src.provider_trust.trust_report import format_trust_ranking
 
 
@@ -232,6 +233,12 @@ def _position_sections(portfolio_snapshot: dict[str, Any]) -> dict[str, Any]:
     return engine.snapshot_to_dict(snapshot)
 
 
+def _risk_sections(portfolio_snapshot: dict[str, Any], position_snapshot: dict[str, Any]) -> dict[str, Any]:
+    engine = RiskManagementEngine()
+    report = engine.evaluate(position_snapshot, portfolio_snapshot, period="TTM")
+    return engine.report_to_dict(report)
+
+
 def generate_weekly_report() -> Path:
     """Generate weekly report markdown and companion CSV."""
 
@@ -246,6 +253,7 @@ def generate_weekly_report() -> Path:
     top_confidence, low_confidence, confidence_warnings = _confidence_sections(rows)
     portfolio_snapshot = _portfolio_sections(rows)
     position_snapshot = _position_sections(portfolio_snapshot)
+    risk_report = _risk_sections(portfolio_snapshot, position_snapshot)
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -390,6 +398,21 @@ def generate_weekly_report() -> Path:
     lines.append("")
     lines.append("## 25. Cash Remaining")
     lines.append(f"- {position_snapshot.get('remaining_cash', 0.0) * 100:.1f}%")
+    lines.append("")
+    lines.append("## 26. Risk Report")
+    lines.append(f"- level={risk_report.get('risk_level', 'LOW')} score={risk_report.get('total_risk_score', 0.0):.2f}")
+    lines.append("")
+    lines.append("## 27. Risk Warnings")
+    for item in risk_report.get("warnings", []):
+        lines.append(f"- {item}")
+    if not risk_report.get("warnings"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 28. Risk Suggested Actions")
+    for item in risk_report.get("suggested_actions", []):
+        lines.append(f"- {item}")
+    if not risk_report.get("suggested_actions"):
+        lines.append("- none")
     lines.append("")
 
     output_path = base_dir / "reports" / "weekly_report.md"
