@@ -201,3 +201,42 @@
 - 清仓 002371.SZ
 - 清仓 000938.SZ
 - 清仓 600460.SH
+
+## 29. Rebalance Plan
+- TTM 调仓建议共 10 项，买入/加仓 0 项，卖出/减仓 0 项，持有 0 项，观察 10 项。
+
+## 30. Rebalance Actions
+- 10. 000034.SZ WATCH 0.0% -> 0.0%
+- 10. 000938.SZ WATCH 0.0% -> 0.0%
+- 10. 000977.SZ WATCH 0.0% -> 0.0%
+- 10. 002230.SZ WATCH 0.0% -> 0.0%
+- 10. 002371.SZ WATCH 0.0% -> 0.0%
+- 10. 300308.SZ WATCH 0.0% -> 0.0%
+- 10. 600460.SH WATCH 0.0% -> 0.0%
+- 10. 600588.SH WATCH 0.0% -> 0.0%
+- 10. 603595.SH WATCH 0.0% -> 0.0%
+- 10. 688041.SH WATCH 0.0% -> 0.0%
+
+## 31. Buy List
+- none
+
+## 32. Sell List
+- none
+
+## 33. Reduce List
+- none
+
+## 34. Add List
+- none
+
+## 35. Hold List
+- 000034.SZ WATCH
+- 000938.SZ WATCH
+- 000977.SZ WATCH
+- 002230.SZ WATCH
+- 002371.SZ WATCH
+- 300308.SZ WATCH
+- 600460.SH WATCH
+- 600588.SH WATCH
+- 603595.SH WATCH
+- 688041.SH WATCH

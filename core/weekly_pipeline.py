@@ -22,6 +22,8 @@ from core.research_engine import run_research_pipeline
 from core.provider_router import ProviderRouter
 from src.portfolio.portfolio_scoring_engine import PortfolioScoringEngine
 from src.position.position_sizing_engine import PositionSizingEngine
+from src.rebalancing.rebalance_contract import CurrentHolding
+from src.rebalancing.rebalance_engine import RebalanceEngine
 from src.risk.risk_management_engine import RiskManagementEngine
 from src.provider_trust.trust_report import format_trust_ranking
 
@@ -239,6 +241,43 @@ def _risk_sections(portfolio_snapshot: dict[str, Any], position_snapshot: dict[s
     return engine.report_to_dict(report)
 
 
+def _synthetic_current_holdings(position_snapshot: dict[str, Any]) -> list[CurrentHolding]:
+    holdings: list[CurrentHolding] = []
+    for index, item in enumerate(position_snapshot.get("recommendations", [])[:8]):
+        symbol = str(item.get("symbol", "UNKNOWN"))
+        target_weight = float(item.get("recommended_weight", 0.0))
+        if index % 3 == 0:
+            current_weight = 0.0
+        elif index % 3 == 1:
+            current_weight = min(target_weight * 1.25, 0.15)
+        else:
+            current_weight = max(0.0, target_weight * 0.85)
+        market_value = round(current_weight * 1_000_000, 2)
+        cost_basis = round(market_value / 1.05, 2) if market_value > 0 else 0.0
+        unrealized_return = round((market_value - cost_basis) / cost_basis, 4) if cost_basis > 0 else 0.0
+        holdings.append(
+            CurrentHolding(
+                symbol=symbol,
+                current_weight=round(current_weight, 4),
+                market_value=market_value,
+                cost_basis=cost_basis,
+                unrealized_return=unrealized_return,
+            )
+        )
+    return holdings
+
+
+def _rebalance_sections(
+    portfolio_snapshot: dict[str, Any],
+    position_snapshot: dict[str, Any],
+    risk_report: dict[str, Any],
+) -> dict[str, Any]:
+    engine = RebalanceEngine()
+    current_holdings = _synthetic_current_holdings(position_snapshot)
+    plan = engine.build_plan(position_snapshot, risk_report, portfolio_snapshot, current_holdings, period="TTM")
+    return engine.plan_to_dict(plan)
+
+
 def generate_weekly_report() -> Path:
     """Generate weekly report markdown and companion CSV."""
 
@@ -254,6 +293,7 @@ def generate_weekly_report() -> Path:
     portfolio_snapshot = _portfolio_sections(rows)
     position_snapshot = _position_sections(portfolio_snapshot)
     risk_report = _risk_sections(portfolio_snapshot, position_snapshot)
+    rebalance_plan = _rebalance_sections(portfolio_snapshot, position_snapshot, risk_report)
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -412,6 +452,52 @@ def generate_weekly_report() -> Path:
     for item in risk_report.get("suggested_actions", []):
         lines.append(f"- {item}")
     if not risk_report.get("suggested_actions"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 29. Rebalance Plan")
+    lines.append(f"- {rebalance_plan.get('summary', '')}")
+    lines.append("")
+    lines.append("## 30. Rebalance Actions")
+    for item in rebalance_plan.get("actions", []):
+        lines.append(
+            f"- {item['priority']}. {item['symbol']} {item['action']} {item['current_weight'] * 100:.1f}% -> {item['target_weight'] * 100:.1f}%"
+        )
+    if not rebalance_plan.get("actions"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 31. Buy List")
+    buy_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") in {"BUY", "ADD"}]
+    for item in buy_list:
+        lines.append(f"- {item['symbol']} {item['action']} {item['target_weight'] * 100:.1f}%")
+    if not buy_list:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 32. Sell List")
+    sell_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") == "SELL"]
+    for item in sell_list:
+        lines.append(f"- {item['symbol']} SELL")
+    if not sell_list:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 33. Reduce List")
+    reduce_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") == "REDUCE"]
+    for item in reduce_list:
+        lines.append(f"- {item['symbol']} REDUCE")
+    if not reduce_list:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 34. Add List")
+    add_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") == "ADD"]
+    for item in add_list:
+        lines.append(f"- {item['symbol']} ADD")
+    if not add_list:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 35. Hold List")
+    hold_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") in {"HOLD", "WATCH"}]
+    for item in hold_list:
+        lines.append(f"- {item['symbol']} {item['action']}")
+    if not hold_list:
         lines.append("- none")
     lines.append("")
 
