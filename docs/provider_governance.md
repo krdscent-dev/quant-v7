@@ -1,4 +1,4 @@
-# Provider Governance
+﻿# Provider Governance
 
 This document describes how the research engine selects between
 `MockDataProvider`, `AkShareDataProvider`, and `TushareDataProvider`.
@@ -68,3 +68,18 @@ Use `TushareDataProvider` for structured financial fields, `AkShareDataProvider`
 for market and event supplements, and `MockDataProvider` as a safe fallback
 for testing, demos, and offline work.
 
+## 7. ProviderRouter -> DataMapping -> FactorInput
+
+The current execution chain is:
+
+`ProviderRouter -> DataMapping -> FactorInput`
+
+Process:
+
+1. `ProviderRouter` selects the best available provider for each field
+2. `DataMappingLayer.build_factor_input(company_code)` fetches raw data
+3. Each field bundle stores `data`, `provider_used`, `fallback_used`, and `timestamp`
+4. Downstream scoring modules consume the standardized factor input output
+
+This flow ensures provider governance is applied before factor standardization,
+while keeping factor calculation separate from source selection.

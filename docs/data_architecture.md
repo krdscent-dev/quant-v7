@@ -70,21 +70,36 @@ The source layer currently has three parallel provider options:
 - `TushareDataProvider` for future financial and market data integration
 
 All three providers implement the same `DataProvider` contract so
-downstream factor and scoring modules stay source-agnostic.
+`ProviderRouter` can select the best source without changing downstream code.
 
-## 5. AkShare Adapter
+## 5. ProviderRouter -> DataMapping -> FactorInput
+
+The next step in the pipeline is:
+
+`ProviderRouter -> DataMapping -> FactorInput`
+
+Execution order:
+
+1. `ProviderRouter` selects the preferred provider for each field
+2. `DataMappingLayer.build_factor_input(company_code)` fetches raw data
+3. Each field bundle records `data`, `provider_used`, `fallback_used`, and `timestamp`
+4. The normalized factor input feeds the factor and scoring layers
+
+This keeps source selection, normalization, and scoring separate.
+
+## 6. AkShare Adapter
 
 `data_sources/akshare_provider.py` is a thin adapter that may return
 placeholder payloads when AkShare is not installed. It is designed to
 stay source-side only and should not contain factor logic.
 
-## 6. Tushare Adapter
+## 7. Tushare Adapter
 
 `data_sources/tushare_provider.py` mirrors the AkShare adapter
 structure. It is also a thin adapter only, and may return placeholder
 payloads when Tushare is not installed.
 
-## 7. Future Extension
+## 8. Future Extension
 
 Planned future adapters:
 

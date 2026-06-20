@@ -1,16 +1,25 @@
 ﻿"""Data mapping layer.
 
-This module maps DataProvider outputs into factor-ready dictionaries for
-research-side scoring. It intentionally uses MockDataProvider only for now
-and is designed for future AkShare / Tushare adapters.
+This module maps provider outputs into factor-ready dictionaries for
+research-side scoring.
+
+Primary entry point:
+- `build_factor_input(company_code: str)`
+
+The layer is source-agnostic and uses ProviderRouter to select the best
+available provider per field. If a preferred provider is unavailable, it
+falls back to `MockDataProvider`.
 """
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 from core.factor_registry import DEFAULT_FACTOR_REGISTRY
+from core.provider_router import ProviderRouter
 from data_sources.base import DataProvider
+from data_sources.mock_provider import MockDataProvider
 
 
 class DataMappingError(RuntimeError):
@@ -20,37 +29,89 @@ class DataMappingError(RuntimeError):
 class DataMappingLayer:
     """Map provider data into standardized factor inputs."""
 
-    def __init__(self, provider: DataProvider) -> None:
-        self.provider = provider
+    def __init__(self, provider: DataProvider | None = None, router: ProviderRouter | None = None) -> None:
+        self.provider = provider or MockDataProvider()
+        self.router = router or ProviderRouter()
 
-    def build_factor_inputs(self, code: str, name: str | None = None, theme: str | None = None) -> dict[str, Any]:
-        basic = dict(self.provider.get_company_basic_info(code))
-        financial = dict(self.provider.get_financial_summary(code))
-        order = dict(self.provider.get_order_signals(code))
-        news = dict(self.provider.get_news_signals(code))
-        theme_signals = dict(self.provider.get_theme_signals(code))
+    def _now(self) -> str:
+        return datetime.now(timezone.utc).isoformat()
 
-        standardized = {
-            "code": code,
-            "name": name or str(basic.get("name", "UNKNOWN")),
-            "theme": theme or str(theme_signals.get("theme", basic.get("industry", "UNKNOWN"))),
-            "tau_factor_score": theme_signals.get("tau_factor_score", 0.0),
-            "supernode_score": theme_signals.get("ascend_ecosystem_exposure", 0.0),
-            "domestic_substitution_score": theme_signals.get("domestic_substitution_exposure", 0.0),
-            "advanced_packaging_score": theme_signals.get("advanced_packaging_exposure", 0.0),
-            "advanced_material_score": theme_signals.get("advanced_material_exposure", 0.0),
+    def _provider_name(self, provider: DataProvider) -> str:
+        return provider.__class__.__name__
+
+    def _fetch_field(self, field_name: str, company_code: str) -> dict[str, Any]:
+        provider = self.router.get_provider_for_field(field_name)
+        provider_used = self._provider_name(provider)
+        fallback_used = False
+        method_name = f"get_{field_name}"
+
+        try:
+            data = getattr(provider, method_name)(company_code)
+            data_dict = dict(data)
+        except Exception:
+            fallback_used = True
+            provider = self.provider
+            provider_used = self._provider_name(provider)
+            data_dict = dict(getattr(provider, method_name)(company_code))
+
+        if data_dict.get("available") is False or str(data_dict.get("status", "")).endswith("not_installed"):
+            if provider_used != "MockDataProvider":
+                fallback_used = True
+                provider = self.provider
+                provider_used = self._provider_name(provider)
+                data_dict = dict(getattr(provider, method_name)(company_code))
+
+        return {
+            "data": data_dict,
+            "provider_used": provider_used,
+            "fallback_used": fallback_used,
+            "timestamp": self._now(),
+        }
+
+    def build_factor_input(self, company_code: str) -> dict[str, Any]:
+        """Build a standardized factor input bundle for one company."""
+
+        company_basic_info = self._fetch_field("company_basic_info", company_code)
+        financial_summary = self._fetch_field("financial_summary", company_code)
+        order_signals = self._fetch_field("order_signals", company_code)
+        news_signals = self._fetch_field("news_signals", company_code)
+        theme_signals = self._fetch_field("theme_signals", company_code)
+
+        basic = dict(company_basic_info["data"])
+        financial = dict(financial_summary["data"])
+        order = dict(order_signals["data"])
+        news = dict(news_signals["data"])
+        theme = dict(theme_signals["data"])
+
+        return {
+            "company_code": company_code,
+            "company_basic_info": company_basic_info,
+            "financial_summary": financial_summary,
+            "order_signals": order_signals,
+            "news_signals": news_signals,
+            "theme_signals": theme_signals,
+            "name": str(basic.get("name", "UNKNOWN")),
+            "theme": str(theme.get("theme", basic.get("industry", "UNKNOWN"))),
+            "tau_factor_score": theme.get("tau_factor_score", 0.0),
+            "supernode_score": theme.get("ascend_ecosystem_exposure", 0.0),
+            "domestic_substitution_score": theme.get("domestic_substitution_exposure", 0.0),
+            "advanced_packaging_score": theme.get("advanced_packaging_exposure", 0.0),
+            "advanced_material_score": theme.get("advanced_material_exposure", 0.0),
             "new_orders": order.get("order_landing_score", 0.0),
             "capacity_expansion": financial.get("capex_signal", 0.0),
             "management_guidance": news.get("guidance_signal", 0.0),
             "customer_verification": order.get("customer_validation_score", 0.0),
             "revenue_acceleration": financial.get("revenue_growth", 0.0),
             "news_signal_strength": news.get("positive_news_ratio", 0.0),
-            "financial_summary": financial,
-            "basic_info": basic,
-            "news_signals": news,
-            "theme_signals": theme_signals,
         }
-        return standardized
+
+    def build_factor_inputs(self, code: str, name: str | None = None, theme: str | None = None) -> dict[str, Any]:
+        payload = self.build_factor_input(company_code=code)
+        if name is not None:
+            payload["name"] = name
+        if theme is not None:
+            payload["theme"] = theme
+        return payload
 
     def build_strategic_score_payload(self, code: str, name: str | None = None, theme: str | None = None) -> dict[str, Any]:
         """Return a payload ready for StrategicScoreEngine."""
