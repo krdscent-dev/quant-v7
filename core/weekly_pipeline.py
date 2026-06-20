@@ -19,6 +19,8 @@ except ImportError as exc:  # pragma: no cover - runtime dependency guard
     raise SystemExit("PyYAML is required to run the weekly pipeline") from exc
 
 from core.research_engine import run_research_pipeline
+from core.provider_router import ProviderRouter
+from src.provider_trust.trust_report import format_trust_ranking
 
 
 @dataclass(frozen=True)
@@ -80,6 +82,11 @@ def build_weekly_report_data() -> list[dict[str, Any]]:
             }
         )
     return sorted(rows, key=lambda row: row["strategic_score"], reverse=True)
+
+
+def _trust_snapshot() -> list[dict[str, Any]]:
+    router = ProviderRouter()
+    return router.get_provider_trust_scores()
 
 
 def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -147,6 +154,7 @@ def generate_weekly_report() -> Path:
 
     base_dir = Path(__file__).resolve().parents[1]
     rows = build_weekly_report_data()
+    trust_scores = _trust_snapshot()
     _write_csv(base_dir / "reports" / "weekly_report.csv", rows)
 
     focus = _theme_focus(rows)
@@ -212,6 +220,18 @@ def generate_weekly_report() -> Path:
     for rank, row in enumerate(rows[:5], start=1):
         decision_explanation = row.get("decision_explanation", {})
         lines.append(f"- {rank}. {row['name']}: {decision_explanation.get('decision_explanation', decision_explanation)}")
+    lines.append("")
+    lines.append("## 11. Provider Trust Ranking")
+    for rank, item in enumerate(trust_scores, start=1):
+        lines.append(f"- {rank}. {item['provider_name']} {item['overall_score']:.2f}")
+    lines.append("")
+    lines.append("## 12. Trust Warnings")
+    trust_warnings = [f"{item['provider_name']} trust={item['overall_score']:.2f}" for item in trust_scores if item["overall_score"] < 0.9]
+    if trust_warnings:
+        for item in trust_warnings:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- none")
     lines.append("")
 
     output_path = base_dir / "reports" / "weekly_report.md"

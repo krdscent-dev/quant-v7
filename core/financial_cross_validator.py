@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-
 CORE_FIELDS: tuple[str, ...] = (
     "营业收入",
     "净利润",
@@ -125,7 +124,11 @@ class FinancialCrossValidator:
             "validation_status": _validation_status_from_confidence(overall_confidence, [
                 flag for item in result_fields.values() for flag in item.get("conflict_flags", [])
             ]),
+            "provider_trust_score": self._default_provider_trust_score(),
         }
+
+    def _default_provider_trust_score(self) -> float:
+        return 0.0
 
 
 def _confidence_score(level: str) -> float:

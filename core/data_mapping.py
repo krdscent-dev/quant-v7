@@ -48,6 +48,18 @@ class DataMappingLayer:
         }
         return mapping.get(str(level).lower(), 0.0)
 
+    def _provider_trust_score(self, provider_name: str) -> float:
+        score = self.router.trust_registry.get_score(provider_name)
+        return float(score.overall_score) if score is not None else 0.5
+
+    def _normalize_provider_name(self, provider_used: str) -> str:
+        name = provider_used.lower()
+        if "tushare" in name:
+            return "tushare"
+        if "akshare" in name:
+            return "akshare"
+        return "mock"
+
     def _validation_status_from_level(self, level: str) -> str:
         mapping = {
             "high": "PASS",
@@ -117,17 +129,22 @@ class DataMappingLayer:
             tushare_summary=tushare_data,
         )
 
+        provider_key = self._normalize_provider_name(provider_used)
+        provider_trust_score = self._provider_trust_score(provider_key)
+
         return {
             "data": primary_data,
             "provider_used": provider_used,
             "fallback_used": fallback_used,
             "confidence_level": cross_validation_result.get("overall_confidence_level", "low"),
-            "confidence_score": self._confidence_score_from_level(cross_validation_result.get("overall_confidence_level", "low")),
+            "confidence_score": self._confidence_score_from_level(cross_validation_result.get("overall_confidence_level", "low"))
+            * provider_trust_score,
             "validation_status": self._validation_status_from_level(cross_validation_result.get("overall_confidence_level", "low")),
             "cross_validation_result": cross_validation_result,
             "timestamp": self._now(),
             "akshare_summary": akshare_data,
             "tushare_summary": tushare_data,
+            "provider_trust_score": provider_trust_score,
         }
 
     def build_factor_input(self, company_code: str) -> dict[str, Any]:

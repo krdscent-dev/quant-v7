@@ -20,6 +20,7 @@ from data_sources.akshare_provider import AkShareDataProvider
 from data_sources.mock_provider import MockDataProvider
 from data_sources.tushare_provider import TushareDataProvider
 from data_sources.base import DataProvider
+from src.provider_trust.trust_registry import TrustRegistry
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,8 @@ class ProviderRouter:
         self.config_path = config_path or Path(__file__).resolve().parents[1] / "config" / "provider_priority.yaml"
         self._config = self._load_config(self.config_path)
         self._providers = self._build_provider_map()
+        self.trust_registry = TrustRegistry()
+        self.trust_registry.load_default_profiles()
 
     def _load_config(self, path: Path) -> Mapping[str, Any]:
         with path.open("r", encoding="utf-8") as handle:
@@ -92,11 +95,38 @@ class ProviderRouter:
 
         return self._providers["mock"]
 
+    def get_best_trust_provider(self) -> DataProvider:
+        scores = self.trust_registry.list_scores()
+        if not scores:
+            return self.get_provider()
+        best = scores[0]
+        provider = self._providers.get(best.provider_name)
+        return provider if provider is not None else self._providers["mock"]
+
     def get_provider_for_field(self, field_name: str) -> DataProvider:
         field_mapping = self._config.get("field_mapping", {})
         field_config = field_mapping.get(field_name, {})
         preferred_provider = field_config.get("preferred_provider")
+        mode = str(self._config.get("conflict_resolution", {}).get("mode", "")).lower()
+        if mode == "best_provider":
+            return self.get_best_trust_provider()
         return self.get_provider(preferred_provider=preferred_provider)
+
+    def get_provider_trust_scores(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "provider_name": score.provider_name,
+                "overall_score": score.overall_score,
+                "coverage_score": score.coverage_score,
+                "consistency_score": score.consistency_score,
+                "freshness_score": score.freshness_score,
+                "stability_score": score.stability_score,
+                "anomaly_score": score.anomaly_score,
+                "warning_count": score.warning_count,
+                "last_updated": score.last_updated,
+            }
+            for score in self.trust_registry.list_scores()
+        ]
 
     def get_conflict_strategy(self) -> str:
         conflict = self._config.get("conflict_resolution", {})
@@ -117,4 +147,3 @@ class ProviderRouter:
                 for item in self._provider_settings()
             ],
         }
-

@@ -3,14 +3,17 @@ providers:
     priority: 1
     enabled: true
     token_placeholder: ""
+    trust_score: 0.97
 
   akshare:
     priority: 2
     enabled: true
+    trust_score: 0.91
 
   mock:
     priority: 99
     enabled: true
+    trust_score: 0.50
 
 field_mapping:
   financial_summary:
@@ -30,3 +33,4 @@ field_mapping:
 
 conflict_resolution:
   strategy: priority_based
+  mode: best_effort
