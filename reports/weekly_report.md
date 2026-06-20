@@ -240,3 +240,20 @@
 - 600588.SH WATCH
 - 603595.SH WATCH
 - 688041.SH WATCH
+
+## 36. Backtest Result
+- 2026-06-01->2026-06-06
+
+## 37. Backtest Summary
+- total_return: 0.0000
+- annualized_return: 0.0000
+- max_drawdown: 0.0000
+
+## 38. Backtest Metrics
+- volatility: 0.0000
+- sharpe_ratio: 0.0000
+- turnover: 0.0000
+- win_rate: 0.0000
+
+## 39. Backtest Warnings
+- none

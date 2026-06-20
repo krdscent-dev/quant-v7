@@ -1,0 +1,18 @@
+from __future__ import annotations
+
+import unittest
+
+from core.weekly_pipeline import generate_weekly_report
+
+
+class WeeklyReportBacktestTest(unittest.TestCase):
+    def test_weekly_report_contains_backtest_sections(self) -> None:
+        path = generate_weekly_report()
+        text = path.read_text(encoding="utf-8")
+        self.assertIn("Backtest Result", text)
+        self.assertIn("Backtest Summary", text)
+        self.assertIn("Backtest Metrics", text)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    unittest.main()
