@@ -23,6 +23,7 @@ from data_sources.base import DataProvider
 from data_sources.akshare_provider import AkShareDataProvider
 from data_sources.mock_provider import MockDataProvider
 from data_sources.tushare_provider import TushareDataProvider
+from src.factor_confidence.confidence_engine import ConfidenceEngine
 
 
 class DataMappingError(RuntimeError):
@@ -36,6 +37,7 @@ class DataMappingLayer:
         self.provider = provider or MockDataProvider()
         self.router = router or ProviderRouter()
         self.cross_validator = FinancialCrossValidator()
+        self.confidence_engine = ConfidenceEngine()
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -170,6 +172,7 @@ class DataMappingLayer:
             "news_signals": news_signals,
             "theme_signals": theme_signals,
             "confidence_score": financial_summary.get("confidence_score", 0.0),
+            "final_confidence": financial_summary.get("confidence_score", 0.0),
             "validation_status": financial_summary.get("validation_status", "INVALID"),
             "name": str(basic.get("name", "UNKNOWN")),
             "theme": str(theme.get("theme", basic.get("industry", "UNKNOWN"))),
@@ -184,6 +187,13 @@ class DataMappingLayer:
             "customer_verification": order.get("customer_validation_score", 0.0),
             "revenue_acceleration": financial.get("revenue_growth", 0.0),
             "news_signal_strength": news.get("positive_news_ratio", 0.0),
+            "confidence_breakdown": {
+                "validation_score": financial_summary.get("cross_validation_result", {}).get("overall_confidence", 0.0),
+                "provider_score": financial_summary.get("provider_trust_score", 0.0),
+                "completeness_score": 1.0 if not financial_summary.get("data", {}).get("missing_fields") else max(0.0, 1.0 - len(financial_summary["data"].get("missing_fields", [])) / max(len(financial_summary["data"].get("mapped_financial_summary", {})), 1)),
+                "stability_score": 1.0,
+                "final_score": financial_summary.get("confidence_score", 0.0),
+            },
         }
 
     def build_factor_inputs(self, code: str, name: str | None = None, theme: str | None = None) -> dict[str, Any]:

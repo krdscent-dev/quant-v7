@@ -22,6 +22,7 @@ class EvidenceNode:
     parent_ids: list[str] = field(default_factory=list)
     source_field: str = ""
     mapped_field: str = ""
+    confidence_breakdown: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)

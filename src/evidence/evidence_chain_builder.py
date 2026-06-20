@@ -43,6 +43,7 @@ class EvidenceChainBuilder:
             confidence_score: float,
             source_field: str = "",
             mapped_field: str = "",
+            confidence_breakdown: dict[str, Any] | None = None,
             parent_ids: list[str] | None = None,
         ) -> EvidenceNode:
             node = EvidenceNode(
@@ -60,6 +61,7 @@ class EvidenceChainBuilder:
                 parent_ids=list(parent_ids or []),
                 source_field=source_field,
                 mapped_field=mapped_field,
+                confidence_breakdown=confidence_breakdown,
             )
             nodes.append(node)
             return node
@@ -79,10 +81,12 @@ class EvidenceChainBuilder:
                 confidence_score=confidence_score,
                 source_field=field_name,
                 mapped_field=field_name,
+                confidence_breakdown=bundle.get("confidence_breakdown") if field_name == "financial_summary" else None,
             )
             if field_name == "financial_summary":
                 cross = bundle.get("cross_validation_result", {})
                 for field_result_name, field_result in dict(cross.get("field_results", {})).items():
+                    confidence_breakdown = field_result.get("confidence_breakdown", {})
                     add_node(
                         name=field_result_name,
                         value=field_result,
@@ -92,6 +96,7 @@ class EvidenceChainBuilder:
                         confidence_score=self._level_score(field_result.get("confidence_level", confidence_score)),
                         source_field=field_result_name,
                         mapped_field=field_result_name,
+                        confidence_breakdown=confidence_breakdown or None,
                     )
 
         for factor_name in (
@@ -112,6 +117,7 @@ class EvidenceChainBuilder:
                     confidence_score=self._level_score(factor_input.get("confidence_score", 0.0)),
                     source_field=factor_name,
                     mapped_field=factor_name,
+                    confidence_breakdown=dict(factor_input.get("confidence_breakdown", {})) or None,
                 )
 
         overall = self._overall_confidence(nodes)

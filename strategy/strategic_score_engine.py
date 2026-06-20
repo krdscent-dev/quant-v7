@@ -25,6 +25,7 @@ except ImportError as exc:  # pragma: no cover - runtime dependency guard
 
 from core.data_mapping import DataMappingLayer
 from src.evidence.evidence_chain_builder import EvidenceChainBuilder
+from src.factor_confidence.confidence_engine import ConfidenceEngine
 from data_sources.mock_provider import MockDataProvider
 from factors.order_confirmation_factor import calculate_order_confirmation_score
 
@@ -73,6 +74,12 @@ def _confidence_multiplier(value: Any) -> float:
 
 
 def _factor_confidence(factor_dict: Mapping[str, Any], factor_name: str) -> float:
+    if isinstance(factor_dict.get("factor_confidences"), Mapping):
+        factor_conf = factor_dict["factor_confidences"].get(factor_name)
+        if isinstance(factor_conf, Mapping) and "final_confidence" in factor_conf:
+            return _confidence_multiplier(factor_conf.get("final_confidence"))
+    if "final_confidence" in factor_dict:
+        return _confidence_multiplier(factor_dict.get("final_confidence"))
     candidate_keys = (
         f"{factor_name}_confidence_score",
         f"{factor_name}_confidence",
@@ -82,6 +89,18 @@ def _factor_confidence(factor_dict: Mapping[str, Any], factor_name: str) -> floa
         if key in factor_dict:
             return _confidence_multiplier(factor_dict.get(key))
     return 1.0
+
+
+def _aggregate_final_confidence(factor_dict: Mapping[str, Any]) -> float:
+    factor_confidences = factor_dict.get("factor_confidences", {})
+    if isinstance(factor_confidences, Mapping) and factor_confidences:
+        scores: list[float] = []
+        for item in factor_confidences.values():
+            if isinstance(item, Mapping) and "final_confidence" in item:
+                scores.append(float(item.get("final_confidence", 0.0)))
+        if scores:
+            return max(0.0, min(1.0, sum(scores) / len(scores)))
+    return _factor_confidence(factor_dict, "confidence")
 
 
 def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreResult:
@@ -107,7 +126,7 @@ def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreR
     domestic_substitution_score = _normalize_input_score(factor_dict.get("domestic_substitution_score", 0.0))
     advanced_packaging_score = _normalize_input_score(factor_dict.get("advanced_packaging_score", 0.0))
     advanced_material_score = _normalize_input_score(factor_dict.get("advanced_material_score", 0.0))
-    confidence_score = _factor_confidence(factor_dict, "confidence")
+    confidence_score = _aggregate_final_confidence(factor_dict)
 
     order_confirmation_result = calculate_order_confirmation_score(
         {
@@ -140,6 +159,7 @@ def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreR
         "order_confirmation_score": round(order_confirmation_score, 2),
         "advanced_material_score": round(advanced_material_score, 2),
         "confidence_score": round(confidence_score, 2),
+        "final_confidence": round(confidence_score, 2),
     }
 
     score_explanation = (

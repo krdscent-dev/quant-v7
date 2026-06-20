@@ -14,6 +14,14 @@ class ContributionAnalyzer:
     """Calculate factor contribution scores for strategic scoring."""
 
     def _confidence(self, factor_dict: Mapping[str, Any], factor_name: str) -> float:
+        factor_confidences = factor_dict.get("factor_confidences", {})
+        if isinstance(factor_confidences, Mapping):
+            item = factor_confidences.get(factor_name)
+            if isinstance(item, Mapping) and "final_confidence" in item:
+                try:
+                    return max(0.0, min(1.0, float(item.get("final_confidence", 1.0))))
+                except Exception:
+                    return 1.0
         value = factor_dict.get(f"{factor_name}_confidence_score", factor_dict.get("confidence_score", 1.0))
         try:
             confidence = float(value)

@@ -79,6 +79,7 @@ def build_weekly_report_data() -> list[dict[str, Any]]:
                 "evidence_summary": result.get("evidence_summary", {}),
                 "score_explanation": result.get("score_explanation", {}),
                 "decision_explanation": result.get("decision_explanation", {}),
+                "factor_confidences": result.get("factor_confidences", {}),
             }
         )
     return sorted(rows, key=lambda row: row["strategic_score"], reverse=True)
@@ -135,6 +136,25 @@ def _risk_alerts(rows: list[dict[str, Any]]) -> list[str]:
     return alerts[:8]
 
 
+def _confidence_sections(rows: list[dict[str, Any]]) -> tuple[list[str], list[str], list[str]]:
+    scored: list[tuple[str, float]] = []
+    warnings: list[str] = []
+    for row in rows[:10]:
+        factor_confidences = row.get("factor_confidences", {})
+        if isinstance(factor_confidences, dict):
+            for factor_name, item in factor_confidences.items():
+                if not isinstance(item, dict):
+                    continue
+                final_conf = float(item.get("final_confidence", 0.0))
+                scored.append((f"{row['name']}::{factor_name}", final_conf))
+                if final_conf < 0.65:
+                    warnings.append(f"{row['name']} {factor_name} 置信度偏低 {final_conf:.2f}")
+    scored_sorted = sorted(scored, key=lambda item: item[1], reverse=True)
+    top_conf = [f"- {name} {score:.2f}" for name, score in scored_sorted[:5]]
+    low_conf = [f"- {name} {score:.2f}" for name, score in sorted(scored, key=lambda item: item[1])[:5]]
+    return top_conf, low_conf, warnings[:8]
+
+
 def _changes_summary(rows: list[dict[str, Any]]) -> tuple[list[str], list[str], list[str]]:
     catalyst_changes: list[str] = []
     order_changes: list[str] = []
@@ -160,6 +180,7 @@ def generate_weekly_report() -> Path:
     focus = _theme_focus(rows)
     catalyst_changes, order_changes, watchlist_changes = _changes_summary(rows)
     risk_alerts = _risk_alerts(rows)
+    top_confidence, low_confidence, confidence_warnings = _confidence_sections(rows)
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -230,6 +251,24 @@ def generate_weekly_report() -> Path:
     if trust_warnings:
         for item in trust_warnings:
             lines.append(f"- {item}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 13. Top Confidence Factors")
+    if top_confidence:
+        lines.extend(top_confidence)
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 14. Lowest Confidence Factors")
+    if low_confidence:
+        lines.extend(low_confidence)
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 15. Confidence Warnings")
+    if confidence_warnings:
+        lines.extend(confidence_warnings)
     else:
         lines.append("- none")
     lines.append("")

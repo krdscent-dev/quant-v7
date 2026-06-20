@@ -14,6 +14,7 @@ from core.factor_registry import DEFAULT_FACTOR_REGISTRY
 from core.data_mapping import DataMappingLayer
 from src.explainability.decision_explainer import DecisionExplainer
 from src.explainability.score_explainer import ScoreExplainer
+from src.factor_confidence.confidence_engine import ConfidenceEngine
 from strategy.strategic_score_engine import calculate_strategic_score
 from src.evidence.evidence_chain_builder import EvidenceChainBuilder
 
@@ -33,6 +34,7 @@ class ResearchDecision:
     evidence_refs: Mapping[str, Any] = field(default_factory=dict)
     score_explanation: Mapping[str, Any] = field(default_factory=dict)
     decision_explanation: Mapping[str, Any] = field(default_factory=dict)
+    factor_confidences: Mapping[str, Any] = field(default_factory=dict)
 
 
 class ResearchEngine:
@@ -40,6 +42,7 @@ class ResearchEngine:
 
     def __init__(self) -> None:
         self.registry = DEFAULT_FACTOR_REGISTRY
+        self.confidence_engine = ConfidenceEngine()
 
     def _clamp_0_100(self, value: float) -> float:
         return max(0.0, min(100.0, value))
@@ -116,6 +119,15 @@ class ResearchEngine:
         return "；".join(risks)
 
     def _overall_confidence(self, factor_input: Mapping[str, Any]) -> float:
+        factor_confidences = factor_input.get("factor_confidences", {})
+        if isinstance(factor_confidences, Mapping):
+            scores = [
+                float(item.get("final_confidence", 0.0))
+                for item in factor_confidences.values()
+                if isinstance(item, Mapping)
+            ]
+            if scores:
+                return self._clamp_0_100(sum(scores) / len(scores)) / 100.0
         financial = factor_input.get("financial_summary", {})
         if isinstance(financial, Mapping):
             if "confidence_score" in financial:
@@ -159,10 +171,25 @@ class ResearchEngine:
         """Convert FactorInput into a standardized research decision."""
 
         factor_scores = self._calculate_factor_scores(factor_input)
-        strategic_result = calculate_strategic_score({**factor_input, **factor_scores})
-        evidence_chain = EvidenceChainBuilder().from_factor_input({**factor_input, **factor_scores})
+        factor_confidences: dict[str, Any] = {}
+        for factor_name in self.registry.list_factor_names():
+            factor_conf = self.confidence_engine.evaluate({**factor_input, **factor_scores}, factor_name)
+            factor_confidences[factor_name] = {
+                "symbol": factor_conf.symbol,
+                "period": factor_conf.period,
+                "factor_name": factor_conf.factor_name,
+                "validation_confidence": factor_conf.validation_confidence,
+                "provider_confidence": factor_conf.provider_confidence,
+                "completeness_confidence": factor_conf.completeness_confidence,
+                "stability_confidence": factor_conf.stability_confidence,
+                "final_confidence": factor_conf.final_confidence,
+                "warnings": list(factor_conf.warnings),
+                "confidence_breakdown": factor_conf.confidence_breakdown,
+            }
+        strategic_result = calculate_strategic_score({**factor_input, **factor_scores, "factor_confidences": factor_confidences})
+        evidence_chain = EvidenceChainBuilder().from_factor_input({**factor_input, **factor_scores, "factor_confidences": factor_confidences})
         score_explanation = ScoreExplainer().explain(
-            {**factor_input, **factor_scores},
+            {**factor_input, **factor_scores, "factor_confidences": factor_confidences},
             strategic_result.strategic_score,
             symbol=str(factor_input.get("company_code", factor_input.get("code", "UNKNOWN"))),
             period=str(factor_input.get("period", "TTM")),
@@ -199,7 +226,6 @@ class ResearchEngine:
             evidence_chain=evidence_chain,
             score_explanation=score_explanation,
         )
-
         return ResearchDecision(
             theme_exposure=theme_exposure,
             catalyst_strength=round(catalyst_strength, 2),
@@ -212,6 +238,7 @@ class ResearchEngine:
             evidence_refs={"evidence_chain": evidence_chain},
             score_explanation={"score_explanation": score_explanation},
             decision_explanation={"decision_explanation": decision_explanation},
+            factor_confidences=factor_confidences,
         )
 
 
@@ -257,6 +284,7 @@ def run_research_pipeline(company_code: str) -> dict[str, Any]:
         "evidence_summary": EvidenceChainBuilder().to_dict(evidence_chain) if evidence_chain is not None else {},
         "score_explanation": decision.score_explanation,
         "decision_explanation": decision.decision_explanation,
+        "factor_confidences": decision.factor_confidences,
     }
 
 

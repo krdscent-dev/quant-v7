@@ -23,6 +23,32 @@ class DecisionExplainer:
             supporting.append(f"{name}:{float(confidence_score):.2f}")
         return supporting, warnings, confidence
 
+    def _low_confidence_reasons(self, evidence_chain: Any, score_explanation: ScoreExplanation | None) -> list[str]:
+        reasons: list[str] = []
+        nodes = getattr(evidence_chain, "nodes", []) if evidence_chain is not None and not isinstance(evidence_chain, Mapping) else (evidence_chain.get("nodes", []) if isinstance(evidence_chain, Mapping) else [])
+        for node in nodes:
+            if isinstance(node, Mapping):
+                confidence = float(node.get("confidence_score", 0.0))
+                provider = str(node.get("provider", "UNKNOWN"))
+                validation_status = str(node.get("validation_status", "UNKNOWN"))
+                name = str(node.get("name", "UNKNOWN"))
+            else:
+                confidence = float(getattr(node, "confidence_score", 0.0))
+                provider = str(getattr(node, "provider", "UNKNOWN"))
+                validation_status = str(getattr(node, "validation_status", "UNKNOWN"))
+                name = str(getattr(node, "name", "UNKNOWN"))
+            if confidence < 0.70:
+                reasons.append(f"{name} 置信度偏低")
+                if provider and provider != "UNKNOWN":
+                    reasons.append(f"{provider} 数据源可信度偏低")
+                if validation_status in {"MISSING", "MAJOR_DIFF", "INVALID"}:
+                    reasons.append(f"{validation_status} 导致置信度下降")
+            if len(reasons) >= 4:
+                break
+        if score_explanation is not None and score_explanation.confidence_score < 0.70:
+            reasons.append("战略解释层总体置信度偏低")
+        return reasons
+
     def explain(
         self,
         *,
@@ -62,6 +88,7 @@ class DecisionExplainer:
             risk_factors.append("overall_confidence_below_threshold")
             if final_decision == "BUY":
                 final_decision = "WATCH"
+            decision_reasons.extend(self._low_confidence_reasons(evidence_chain, score_explanation))
 
         summary = (
             f"{symbol} / {period} 的最终决策为 {final_decision}。"
