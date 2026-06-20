@@ -21,6 +21,8 @@ except ImportError as exc:  # pragma: no cover - runtime dependency guard
 
 from core.research_engine import run_research_pipeline
 from core.provider_router import ProviderRouter
+from src.agent_workflow.workflow_report import WorkflowReport
+from src.agent_workflow.workflow_steps import build_default_workflow_engine
 from src.backtest.backtest_contract import BacktestConfig
 from src.backtest.backtest_engine import BacktestEngine
 from src.backtest.backtest_report import BacktestReport
@@ -381,6 +383,38 @@ def _knowledge_base_sections(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _workflow_sections(
+    rows: list[dict[str, Any]],
+    portfolio_snapshot: dict[str, Any],
+    position_snapshot: dict[str, Any],
+    risk_report: dict[str, Any],
+    rebalance_plan: dict[str, Any],
+    backtest_payload: dict[str, Any],
+) -> dict[str, Any]:
+    symbols = [row["company_code"] for row in rows[:3]]
+    workflow_engine = build_default_workflow_engine()
+    workflow_run = workflow_engine.run_workflow(
+        period="TTM",
+        symbols=symbols,
+        context={
+            "rows": rows,
+            "portfolio_snapshot": portfolio_snapshot,
+            "position_snapshot": position_snapshot,
+            "risk_report": risk_report,
+            "rebalance_plan": rebalance_plan,
+            "backtest_result": backtest_payload,
+        },
+    )
+    workflow_report = WorkflowReport()
+    workflow_dict = workflow_report.to_dict(workflow_run)
+    return {
+        "workflow_run": workflow_dict,
+        "workflow_summary": workflow_dict["summary"],
+        "workflow_errors": workflow_dict["error_summary"],
+        "workflow_warnings": workflow_dict["warning_summary"],
+    }
+
+
 def _generate_weekly_report(base_dir: Path) -> Path:
     rows = build_weekly_report_data()
     trust_scores = _trust_snapshot()
@@ -396,6 +430,7 @@ def _generate_weekly_report(base_dir: Path) -> Path:
     rebalance_plan = _rebalance_sections(portfolio_snapshot, position_snapshot, risk_report)
     backtest_report, backtest_payload = _backtest_sections(rows, portfolio_snapshot, position_snapshot, rebalance_plan)
     kb_sections = _knowledge_base_sections(rows)
+    workflow_sections = _workflow_sections(rows, portfolio_snapshot, position_snapshot, risk_report, rebalance_plan, backtest_payload)
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -648,6 +683,26 @@ def _generate_weekly_report(base_dir: Path) -> Path:
         for item in history:
             lines.append(f"  - {item}")
     if not kb_sections["historical_decision_changes"]:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 43. Workflow Summary")
+    lines.append(f"- {workflow_sections['workflow_summary']}")
+    lines.append("")
+    lines.append("## 44. Workflow Status")
+    lines.append(f"- {workflow_sections['workflow_run']['final_status']}")
+    lines.append("")
+    lines.append("## 45. Workflow Warnings")
+    if workflow_sections["workflow_warnings"]:
+        for item in workflow_sections["workflow_warnings"]:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 46. Workflow Errors")
+    if workflow_sections["workflow_errors"]:
+        for item in workflow_sections["workflow_errors"]:
+            lines.append(f"- {item}")
+    else:
         lines.append("- none")
     lines.append("")
 
