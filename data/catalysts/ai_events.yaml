@@ -1,0 +1,48 @@
+# AI算力相关催化事件库
+# 说明:
+# - 仅用于研究观察
+# - 不包含股价预测
+
+events:
+  - event_name: AI服务器订单集中释放
+    date: "2026-01-28"
+    importance: A
+    related_themes:
+      - AI算力
+      - 华为昇腾生态
+    related_companies:
+      - 浪潮信息
+      - 工业富联
+      - 海光信息
+    expected_impact: 订单释放可用于验证算力链条景气度。
+  - event_name: 高速光模块需求升级
+    date: "2026-03-05"
+    importance: A
+    related_themes:
+      - AI算力
+    related_companies:
+      - 中际旭创
+      - 新易盛
+      - 天孚通信
+    expected_impact: 高速互联需求变化将影响光模块链条观察。
+  - event_name: 数据中心上架率改善
+    date: "2026-04-22"
+    importance: B
+    related_themes:
+      - AI算力
+    related_companies:
+      - 数据港
+      - 宝信软件
+      - 网宿科技
+    expected_impact: 上架率改善有助于判断IDC与配套业务趋势。
+  - event_name: 液冷方案项目推进
+    date: "2026-05-16"
+    importance: B
+    related_themes:
+      - AI算力
+      - 先进封装
+    related_companies:
+      - 浪潮信息
+      - 中航光电
+      - 北方华创
+    expected_impact: 液冷和高密度部署进展可增强算力基础设施链条关注度。

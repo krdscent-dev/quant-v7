@@ -1,0 +1,374 @@
+version: V8
+theme: AI算力
+description: A股AI算力基础设施、光互联、服务器、IDC、液冷与高性能计算相关核心观察池。
+auto_scoring: false
+
+companies:
+  - code: 000977.SZ
+    name: 浪潮信息
+    theme: AI算力
+    sub_theme: AI服务器
+    investment_thesis: AI服务器和算力基础设施核心厂商，受益于数据中心与推理/训练集群扩张。
+    bull_case: 服务器订单放量，AI基础设施资本开支持续。
+    bear_case: 资本开支放缓，服务器竞争加剧。
+    key_catalysts:
+      - 数据中心扩容
+      - 服务器订单确认
+      - 液冷需求提升
+    key_risks:
+      - 订单节奏波动
+      - 毛利率承压
+      - 供应链扰动
+    priority: A
+  - code: 300308.SZ
+    name: 中际旭创
+    theme: AI算力
+    sub_theme: 高速光互联
+    investment_thesis: 高速光模块龙头，受益于AI集群带来的互联升级和带宽需求提升。
+    bull_case: 高速互联需求持续增长。
+    bear_case: 海外需求波动或价格竞争加剧。
+    key_catalysts:
+      - 高速光模块出货增长
+      - AI集群扩容
+      - 海外订单改善
+    key_risks:
+      - 客户集中度较高
+      - 价格竞争加剧
+      - 需求周期变化
+    priority: A
+  - code: 002281.SZ
+    name: 光迅科技
+    theme: AI算力
+    sub_theme: 光器件
+    investment_thesis: 光器件与光互联基础设施核心标的，受益于算力网络升级。
+    bull_case: 光器件需求随算力网络建设增长。
+    bear_case: 产品升级节奏不及预期。
+    key_catalysts:
+      - 数据中心互联需求
+      - 高速光器件放量
+      - 客户扩展
+    key_risks:
+      - 产品迭代压力
+      - 需求波动
+      - 毛利率波动
+    priority: B
+  - code: 002131.SZ
+    name: 利欧股份
+    theme: AI算力
+    sub_theme: 算力与营销科技
+    investment_thesis: 关注AI算力资源配置与数字化业务协同的弹性观察标的。
+    bull_case: AI业务协同改善。
+    bear_case: 业务转型兑现不足。
+    key_catalysts:
+      - AI业务合作
+      - 数字化投入增加
+      - 市场预期修复
+    key_risks:
+      - 转型兑现慢
+      - 业绩波动
+      - 估值回撤
+    priority: C
+  - code: 300017.SZ
+    name: 网宿科技
+    theme: AI算力
+    sub_theme: 边缘计算/IDC
+    investment_thesis: 边缘云与数据流量基础设施受益标的，适合观察算力配套需求。
+    bull_case: 边缘计算和流量业务改善。
+    bear_case: 流量红利放缓。
+    key_catalysts:
+      - 边缘计算需求
+      - IDC相关合作
+      - 客户扩张
+    key_risks:
+      - 行业竞争
+      - 价格压力
+      - 需求放缓
+    priority: B
+  - code: 603881.SH
+    name: 数据港
+    theme: AI算力
+    sub_theme: IDC
+    investment_thesis: 数据中心基础设施核心公司，关注AI算力带来的机柜与上架需求。
+    bull_case: IDC需求延续增长。
+    bear_case: 机柜上架不及预期。
+    key_catalysts:
+      - 机柜上架率提升
+      - 新项目投产
+      - 头部客户扩容
+    key_risks:
+      - 资本开支周期长
+      - 订单兑现慢
+      - 利润率压力
+    priority: A
+  - code: 300394.SZ
+    name: 天孚通信
+    theme: AI算力
+    sub_theme: 光器件/连接
+    investment_thesis: 光通信连接与器件核心标的，受益于AI数据中心互联升级。
+    bull_case: 连接需求持续提升。
+    bear_case: 行业周期下行。
+    key_catalysts:
+      - 高速连接需求
+      - 客户放量
+      - 产品升级
+    key_risks:
+      - 需求波动
+      - 竞争加剧
+      - 订单延后
+    priority: A
+  - code: 002179.SZ
+    name: 中航光电
+    theme: AI算力
+    sub_theme: 高速连接/数据中心
+    investment_thesis: 高可靠连接器龙头，受益于数据中心、服务器和高性能计算互联需求。
+    bull_case: 数据中心高可靠连接需求增长。
+    bear_case: 工业与通信需求不及预期。
+    key_catalysts:
+      - 数据中心项目
+      - 高速连接需求
+      - 客户导入
+    key_risks:
+      - 项目周期长
+      - 产品替代风险
+      - 毛利率波动
+    priority: B
+  - code: 002371.SZ
+    name: 北方华创
+    theme: AI算力
+    sub_theme: 半导体设备
+    investment_thesis: 半导体设备龙头，算力芯片和先进制造扩产背景下的关键受益者。
+    bull_case: 国产设备替代持续推进。
+    bear_case: 下游资本开支波动。
+    key_catalysts:
+      - 设备订单增长
+      - 国产化推进
+      - 先进制造扩产
+    key_risks:
+      - 订单确认延后
+      - 下游波动
+      - 竞争压力
+    priority: A
+  - code: 688012.SH
+    name: 中微公司
+    theme: AI算力
+    sub_theme: 半导体设备
+    investment_thesis: 刻蚀和薄膜沉积设备核心公司，受益于先进制程和AI芯片制造需求。
+    bull_case: 制造升级与国产替代共振。
+    bear_case: 设备导入周期拉长。
+    key_catalysts:
+      - 新工艺验证
+      - 客户扩产
+      - 设备导入
+    key_risks:
+      - 技术迭代压力
+      - 订单波动
+      - 海外限制变化
+    priority: A
+  - code: 300496.SZ
+    name: 中科创达
+    theme: AI算力
+    sub_theme: 边缘AI/软件
+    investment_thesis: 边缘AI和智能终端软件服务标的，观察AI算力向终端渗透。
+    bull_case: AI终端需求回升。
+    bear_case: 商业化进展不足。
+    key_catalysts:
+      - AI终端产品落地
+      - 生态合作
+      - 客户导入
+    key_risks:
+      - 收入兑现不及预期
+      - 行业竞争
+      - 研发投入高
+    priority: C
+  - code: 688256.SH
+    name: 寒武纪
+    theme: AI算力
+    sub_theme: AI芯片
+    investment_thesis: AI芯片设计公司，适合观察国产AI算力芯片生态建设。
+    bull_case: 国产AI芯片生态建设加速。
+    bear_case: 商业化和规模化仍需时间。
+    key_catalysts:
+      - 芯片迭代
+      - 客户导入
+      - 生态合作
+    key_risks:
+      - 商业化进度慢
+      - 研发投入高
+      - 竞争加剧
+    priority: A
+  - code: 688041.SH
+    name: 海光信息
+    theme: AI算力
+    sub_theme: AI CPU/GPU
+    investment_thesis: 国产高性能计算芯片核心标的，受益于服务器和AI算力基础设施升级。
+    bull_case: 高性能计算需求持续。
+    bear_case: 出货节奏波动。
+    key_catalysts:
+      - 服务器导入
+      - 算力需求增长
+      - 生态协同
+    key_risks:
+      - 需求波动
+      - 供应链压力
+      - 产品迭代风险
+    priority: A
+  - code: 000938.SZ
+    name: 紫光股份
+    theme: AI算力
+    sub_theme: 网络设备/算力基础设施
+    investment_thesis: 网络设备与算力基础设施受益标的，观察AI集群建设带来的设备需求。
+    bull_case: AI网络设备需求提升。
+    bear_case: 项目周期拉长。
+    key_catalysts:
+      - 政企项目落地
+      - 算力集群建设
+      - 网络设备升级
+    key_risks:
+      - 毛利率波动
+      - 项目延后
+      - 竞争加剧
+    priority: B
+  - code: 600845.SH
+    name: 宝信软件
+    theme: AI算力
+    sub_theme: 工业互联网/IDC
+    investment_thesis: 工业互联网与IDC双重属性，观察算力基础设施和数字化协同。
+    bull_case: 数字化和IDC需求共振。
+    bear_case: 行业需求波动。
+    key_catalysts:
+      - IDC项目
+      - 工业互联网订单
+      - 客户扩展
+    key_risks:
+      - 项目周期长
+      - 利润率波动
+      - 需求放缓
+    priority: B
+  - code: 600498.SH
+    name: 烽火通信
+    theme: AI算力
+    sub_theme: 光通信/网络设备
+    investment_thesis: 通信和光网络基础设施公司，适合观察算力网络和互联升级。
+    bull_case: 网络升级需求持续。
+    bear_case: 运营商投资节奏波动。
+    key_catalysts:
+      - 网络升级
+      - 光传输需求
+      - 行业项目
+    key_risks:
+      - 投资放缓
+      - 竞争压力
+      - 项目延后
+    priority: B
+  - code: 002929.SZ
+    name: 润建股份
+    theme: AI算力
+    sub_theme: 算力/通信服务
+    investment_thesis: 通信网络与算力服务结合标的，关注项目交付与算力相关业务扩张。
+    bull_case: 算力服务业务扩展。
+    bear_case: 项目交付节奏不稳。
+    key_catalysts:
+      - 算力项目
+      - 通信服务订单
+      - 客户拓展
+    key_risks:
+      - 订单波动
+      - 交付延迟
+      - 毛利率承压
+    priority: C
+  - code: 300394.SZ
+    name: 天孚通信
+    theme: AI算力
+    sub_theme: 光互联
+    investment_thesis: 高速互联和光器件核心公司，受益于AI集群内部连接升级。
+    bull_case: 光互联需求持续提升。
+    bear_case: 行业竞争和周期波动。
+    key_catalysts:
+      - 高速光模块需求
+      - 客户放量
+      - 产品升级
+    key_risks:
+      - 需求波动
+      - 竞争加剧
+      - 订单延后
+    priority: A
+  - code: 300502.SZ
+    name: 新易盛
+    theme: AI算力
+    sub_theme: 高速光模块
+    investment_thesis: 高速光模块核心供应商，受益于AI训练和推理集群扩容。
+    bull_case: 高速模块需求增长。
+    bear_case: 海外市场不确定性。
+    key_catalysts:
+      - 海外订单
+      - AI集群需求
+      - 产品升级
+    key_risks:
+      - 海外波动
+      - 价格竞争
+      - 订单节奏变化
+    priority: A
+  - code: 688048.SH
+    name: 长光华芯
+    theme: AI算力
+    sub_theme: 光芯片
+    investment_thesis: 光芯片和高速互联上游标的，受益于AI算力基础设施升级。
+    bull_case: 光芯片国产化推进。
+    bear_case: 产业化进度慢。
+    key_catalysts:
+      - 光芯片导入
+      - 客户验证
+      - 产品放量
+    key_risks:
+      - 商业化不及预期
+      - 竞争压力
+      - 研发投入高
+    priority: C
+  - code: 688220.SH
+    name: 翱捷科技
+    theme: AI算力
+    sub_theme: 芯片设计
+    investment_thesis: 芯片设计与AI终端接口相关，观察算力向终端侧扩散。
+    bull_case: 终端AI需求提升。
+    bear_case: 产品放量节奏不稳。
+    key_catalysts:
+      - 终端导入
+      - 芯片迭代
+      - 客户扩展
+    key_risks:
+      - 放量慢
+      - 竞争加剧
+      - 研发成本高
+    priority: C
+  - code: 300803.SZ
+    name: 指南针
+    theme: AI算力
+    sub_theme: 金融信息化/AI应用
+    investment_thesis: AI应用和数据服务观察标的，关注算力投入带来的软件应用扩展。
+    bull_case: AI应用落地加速。
+    bear_case: 商业化节奏不足。
+    key_catalysts:
+      - AI应用合作
+      - 用户增长
+      - 产品升级
+    key_risks:
+      - 变现不足
+      - 竞争加剧
+      - 估值波动
+    priority: C
+  - code: 300394.SZ
+    name: 天孚通信
+    theme: AI算力
+    sub_theme: 光器件
+    investment_thesis: 光器件与连接核心公司，受益于AI互联需求上行。
+    bull_case: 高速互联需求提升。
+    bear_case: 需求和价格波动。
+    key_catalysts:
+      - 光器件放量
+      - 数据中心互联
+      - 客户扩展
+    key_risks:
+      - 价格压力
+      - 订单延后
+      - 竞争加剧
+    priority: A

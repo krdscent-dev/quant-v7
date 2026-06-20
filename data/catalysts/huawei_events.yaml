@@ -1,0 +1,50 @@
+# 华为相关催化事件库
+# 说明:
+# - 仅用于研究观察
+# - 不包含股价预测
+
+events:
+  - event_name: 昇腾生态合作发布
+    date: "2026-01-15"
+    importance: A
+    related_themes:
+      - 华为昇腾生态
+      - 超节点受益链
+    related_companies:
+      - 神州数码
+      - 东尼电子
+      - 海光信息
+    expected_impact: 生态合作与订单验证强化主题关注度。
+  - event_name: 超节点部署进展更新
+    date: "2026-03-20"
+    importance: A
+    related_themes:
+      - 华为昇腾生态
+      - 超节点受益链
+    related_companies:
+      - 海光信息
+      - 紫光股份
+      - 北方华创
+    expected_impact: 部署规模变化将影响生态链条的研究权重。
+  - event_name: 昇腾软件适配里程碑
+    date: "2026-04-18"
+    importance: B
+    related_themes:
+      - 华为昇腾生态
+    related_companies:
+      - 用友网络
+      - 金山办公
+      - 科大讯飞
+    expected_impact: 适配进展有助于观察软件生态和应用层扩散。
+  - event_name: 华为产业链年度合作会议
+    date: "2026-05-22"
+    importance: B
+    related_themes:
+      - 华为昇腾生态
+      - 国产替代
+    related_companies:
+      - 中兴通讯
+      - 中航光电
+      - 中际旭创
+    expected_impact: 合作范围扩大会带来链条重估机会。
+

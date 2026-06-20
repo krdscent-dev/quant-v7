@@ -1,0 +1,291 @@
+# V7 核心观察池
+#
+# 用途:
+# - 作为研究引擎的核心观察标的池
+# - 仅用于观察与研究，不自动打分
+
+version: V7
+universe_name: A股核心观察池
+auto_scoring: false
+
+themes:
+  - theme_name: AI算力
+    items:
+      - code: 000977.SZ
+        name: 浪潮信息
+        theme: AI算力
+        investment_thesis: AI服务器和算力基础设施龙头，受益于算力资本开支扩张。
+        key_catalysts:
+          - 数据中心资本开支上修
+          - 服务器订单确认
+          - 液冷渗透率提升
+        risk_factors:
+          - 订单延迟确认
+          - 资本开支放缓
+          - 供电与散热瓶颈
+        watch_priority: A
+      - code: 300308.SZ
+        name: 中际旭创
+        theme: AI算力
+        investment_thesis: 高速光互联核心受益标的，关注AI集群扩容带来的互联需求。
+        key_catalysts:
+          - 高速互联需求增长
+          - AI集群扩容
+          - 海外订单改善
+        risk_factors:
+          - 海外需求波动
+          - 价格竞争加剧
+          - 订单节奏变化
+        watch_priority: A
+      - code: 002230.SZ
+        name: 科大讯飞
+        theme: AI算力
+        investment_thesis: AI应用与算力需求协同受益，兼具模型、平台与应用落地观察价值。
+        key_catalysts:
+          - 大模型应用落地
+          - 政企客户扩张
+          - 算力资源配置优化
+        risk_factors:
+          - 应用变现不及预期
+          - 研发投入高企
+          - 政策节奏变化
+        watch_priority: B
+
+  - theme_name: 华为昇腾生态
+    items:
+      - code: 603595.SH
+        name: 东尼电子
+        theme: 华为昇腾生态
+        investment_thesis: 昇腾生态供应链受益标的，重点观察订单与适配进展。
+        key_catalysts:
+          - 昇腾相关订单
+          - 生态适配完成
+          - 供应链扩张
+        risk_factors:
+          - 客户集中度高
+          - 订单不稳定
+          - 生态推进放缓
+        watch_priority: A
+      - code: 000034.SZ
+        name: 神州数码
+        theme: 华为昇腾生态
+        investment_thesis: 生态渠道与解决方案服务能力突出，受益于昇腾生态扩张。
+        key_catalysts:
+          - 渠道订单扩张
+          - 解决方案落地
+          - 生态伙伴增加
+        risk_factors:
+          - 项目验收延迟
+          - 利润率承压
+          - 渠道竞争加剧
+        watch_priority: B
+      - code: 600588.SH
+        name: 用友网络
+        theme: 华为昇腾生态
+        investment_thesis: 企业软件与国产生态适配相关，观察昇腾生态融合进展。
+        key_catalysts:
+          - 国产软件适配
+          - 企业客户升级
+          - 平台协同增强
+        risk_factors:
+          - 交付周期延长
+          - 客户预算收缩
+          - 生态协同不足
+        watch_priority: C
+
+  - theme_name: 超节点受益链
+    items:
+      - code: 688041.SH
+        name: 海光信息
+        theme: 超节点受益链
+        investment_thesis: 高性能计算和服务器链条核心标的，受益于超节点与算力集群建设。
+        key_catalysts:
+          - 高性能计算需求增长
+          - 超节点部署推进
+          - 生态合作扩大
+        risk_factors:
+          - 交付节奏放缓
+          - 行业竞争加剧
+          - 需求波动
+        watch_priority: A
+      - code: 002371.SZ
+        name: 北方华创
+        theme: 超节点受益链
+        investment_thesis: 高端设备与工艺环节核心受益，兼具国产替代和先进制造属性。
+        key_catalysts:
+          - 设备订单增长
+          - 工艺升级需求
+          - 国产化替代推进
+        risk_factors:
+          - 下游资本开支波动
+          - 订单确认延后
+          - 产能利用率波动
+        watch_priority: A
+      - code: 000938.SZ
+        name: 紫光股份
+        theme: 超节点受益链
+        investment_thesis: 网络与算力基础设施链条受益标的，关注超节点配套需求。
+        key_catalysts:
+          - 网络设备需求
+          - 算力集群建设
+          - 政企项目落地
+        risk_factors:
+          - 项目周期拉长
+          - 毛利率波动
+          - 竞争压力上升
+        watch_priority: B
+
+  - theme_name: 国产替代
+    items:
+      - code: 600460.SH
+        name: 士兰微
+        theme: 国产替代
+        investment_thesis: 半导体国产替代链条代表，关注功率器件和产品自给率提升。
+        key_catalysts:
+          - 国产替代比例提升
+          - 产品认证通过
+          - 客户导入进展
+        risk_factors:
+          - 下游需求波动
+          - 价格竞争加剧
+          - 认证周期延长
+        watch_priority: A
+      - code: 688012.SH
+        name: 中微公司
+        theme: 国产替代
+        investment_thesis: 高端设备国产化核心标的，受益于制造升级和供应链安全诉求。
+        key_catalysts:
+          - 高端设备订单
+          - 国产化推进
+          - 客户验证扩大
+        risk_factors:
+          - 订单节奏波动
+          - 技术迭代压力
+          - 海外限制变化
+        watch_priority: A
+      - code: 688126.SH
+        name: 沪硅产业
+        theme: 国产替代
+        investment_thesis: 半导体材料国产替代方向，关注硅片国产化进程。
+        key_catalysts:
+          - 产能释放
+          - 客户验证
+          - 国产替代加速
+        risk_factors:
+          - 良率波动
+          - 需求周期变化
+          - 扩产压力
+        watch_priority: B
+
+  - theme_name: 玻璃基板
+    items:
+      - code: 600703.SH
+        name: 三安光电
+        theme: 玻璃基板
+        investment_thesis: 先进材料与封装路线观察标的，关注新材料工艺验证和客户导入。
+        key_catalysts:
+          - 试产进度
+          - 良率提升
+          - 客户验证
+        risk_factors:
+          - 工艺验证失败
+          - 量产节奏慢
+          - 商业化进展不及预期
+        watch_priority: A
+      - code: 688002.SH
+        name: 睿创微纳
+        theme: 玻璃基板
+        investment_thesis: 先进工艺和材料链条的辅助观察标的，关注相关技术突破外溢。
+        key_catalysts:
+          - 技术协同
+          - 材料验证
+          - 应用导入
+        risk_factors:
+          - 主题关联度弱
+          - 业务兑现不强
+          - 估值回撤
+        watch_priority: C
+
+  - theme_name: 人造金刚石
+    items:
+      - code: 688234.SH
+        name: 天岳先进
+        theme: 人造金刚石
+        investment_thesis: 超硬材料与热管理链条核心观察标的，关注产品结构和应用扩展。
+        key_catalysts:
+          - 产能提升
+          - 工业应用扩展
+          - 产品价格改善
+        risk_factors:
+          - 价格下行
+          - 需求波动
+          - 扩产压力
+        watch_priority: A
+      - code: 002192.SZ
+        name: 融捷股份
+        theme: 人造金刚石
+        investment_thesis: 超硬材料相关观察标的，关注行业景气和产品应用延展。
+        key_catalysts:
+          - 行业景气改善
+          - 下游需求扩张
+          - 价格修复
+        risk_factors:
+          - 行业周期下行
+          - 价格竞争
+          - 产能过剩
+        watch_priority: B
+      - code: 300395.SZ
+        name: 菲利华
+        theme: 人造金刚石
+        investment_thesis: 先进材料属性突出，兼顾高端制造材料观察价值。
+        key_catalysts:
+          - 材料需求增长
+          - 客户导入
+          - 应用扩展
+        risk_factors:
+          - 需求波动
+          - 行业竞争
+          - 估值波动
+        watch_priority: C
+
+  - theme_name: 先进封装
+    items:
+      - code: 002156.SZ
+        name: 通富微电
+        theme: 先进封装
+        investment_thesis: 先进封装核心受益标的，关注产能利用率、工艺成熟度和客户导入。
+        key_catalysts:
+          - Chiplet导入
+          - 2.5D/3D工艺成熟
+          - 新产线爬坡
+        risk_factors:
+          - 工艺爬坡慢
+          - 客户导入延迟
+          - 资本开支回收慢
+        watch_priority: A
+      - code: 600584.SH
+        name: 长电科技
+        theme: 先进封装
+        investment_thesis: 封装龙头之一，观察先进封装收入占比和客户验证进展。
+        key_catalysts:
+          - 封装收入增长
+          - 客户验证增加
+          - 产能释放
+        risk_factors:
+          - 景气度波动
+          - 毛利率承压
+          - 竞争加剧
+        watch_priority: A
+      - code: 002185.SZ
+        name: 华天科技
+        theme: 先进封装
+        investment_thesis: 先进封装观察标的，关注客户导入和产线升级情况。
+        key_catalysts:
+          - 产线升级
+          - 客户验证
+          - 需求回暖
+        risk_factors:
+          - 订单波动
+          - 利润率承压
+          - 投资回收慢
+        watch_priority: B

@@ -1,0 +1,206 @@
+﻿version: V8
+theme: 先进封装
+description: A股先进封装观察池，覆盖封测龙头、工艺设备、材料与配套环节。
+auto_scoring: false
+
+companies:
+  - code: 002156.SZ
+    name: 通富微电
+    theme: 先进封装
+    sub_theme: 封测
+    investment_thesis: 先进封装核心受益标的，关注产能利用率、工艺成熟度和客户导入。
+    bull_case: Chiplet和高端封装需求增长。
+    bear_case: 工艺爬坡慢。
+    key_catalysts: [Chiplet导入, 2.5D/3D工艺成熟, 新产线爬坡]
+    key_risks: [工艺爬坡慢, 客户导入延迟, 回收周期长]
+    priority: A
+  - code: 600584.SH
+    name: 长电科技
+    theme: 先进封装
+    sub_theme: 封测
+    investment_thesis: 封装龙头之一，关注先进封装收入占比和客户验证进展。
+    bull_case: 先进封装收入提升。
+    bear_case: 景气波动。
+    key_catalysts: [封装收入增长, 客户验证增加, 产能释放]
+    key_risks: [景气波动, 毛利率承压, 竞争加剧]
+    priority: A
+  - code: 002185.SZ
+    name: 华天科技
+    theme: 先进封装
+    sub_theme: 封测
+    investment_thesis: 先进封装观察标的，关注客户导入和产线升级情况。
+    bull_case: 产线升级带来弹性。
+    bear_case: 订单波动。
+    key_catalysts: [产线升级, 客户验证, 需求回暖]
+    key_risks: [订单波动, 利润率承压, 投资回收慢]
+    priority: B
+  - code: 688120.SH
+    name: 华峰测控
+    theme: 先进封装
+    sub_theme: 测试设备
+    investment_thesis: 封装测试设备核心标的，受益于先进封装测试需求。
+    bull_case: 测试需求增长。
+    bear_case: 设备投资放缓。
+    key_catalysts: [测试设备需求, 客户导入, 工艺升级]
+    key_risks: [订单波动, 竞争加剧, 项目延期]
+    priority: A
+  - code: 688200.SH
+    name: 华峰测控
+    theme: 先进封装
+    sub_theme: 测试设备
+    investment_thesis: 封装测试设备观察标的，关注高端测试需求升级。
+    bull_case: 高端测试放量。
+    bear_case: 订单节奏波动。
+    key_catalysts: [测试需求, 客户导入, 工艺升级]
+    key_risks: [订单波动, 竞争加剧, 交付延后]
+    priority: B
+  - code: 688521.SH
+    name: 芯原股份
+    theme: 先进封装
+    sub_theme: Chiplet/设计服务
+    investment_thesis: Chiplet与设计服务链观察标的，关注先进封装设计协同。
+    bull_case: Chiplet设计需求提升。
+    bear_case: 设计项目周期长。
+    key_catalysts: [Chiplet设计, 客户导入, 工艺协同]
+    key_risks: [项目周期, 竞争加剧, 需求波动]
+    priority: B
+  - code: 300458.SZ
+    name: 全志科技
+    theme: 先进封装
+    sub_theme: 终端芯片/封装协同
+    investment_thesis: 终端芯片与封装协同观察标的。
+    bull_case: 终端AI和封装协同提升。
+    bear_case: 市场竞争加剧。
+    key_catalysts: [终端导入, 芯片升级, 封装协同]
+    key_risks: [竞争加剧, 需求波动, 价格压力]
+    priority: C
+  - code: 002938.SZ
+    name: 鹏鼎控股
+    theme: 先进封装
+    sub_theme: PCB/封装
+    investment_thesis: PCB和先进封装相关公司，关注高端载板与封装协同。
+    bull_case: 高端封装和PCB需求增长。
+    bear_case: 行业周期波动。
+    key_catalysts: [高端PCB, 封装协同, 客户导入]
+    key_risks: [周期波动, 毛利率压力, 需求延后]
+    priority: A
+  - code: 300046.SZ
+    name: 台基股份
+    theme: 先进封装
+    sub_theme: 功率器件封装
+    investment_thesis: 功率器件与先进封装结合标的，关注高端封装需求。
+    bull_case: 功率器件需求回暖。
+    bear_case: 行业价格压力。
+    key_catalysts: [功率器件, 封装升级, 客户导入]
+    key_risks: [价格压力, 需求波动, 竞争加剧]
+    priority: C
+  - code: 300260.SZ
+    name: 新莱应材
+    theme: 先进封装
+    sub_theme: 材料/设备配套
+    investment_thesis: 封装材料和设备配套观察标的。
+    bull_case: 配套材料需求改善。
+    bear_case: 订单节奏波动。
+    key_catalysts: [材料配套, 设备升级, 客户导入]
+    key_risks: [订单波动, 竞争加剧, 需求放缓]
+    priority: B
+  - code: 300316.SZ
+    name: 晶盛机电
+    theme: 先进封装
+    sub_theme: 设备/工艺
+    investment_thesis: 工艺与设备协同标的，关注先进封装相关设备需求。
+    bull_case: 设备需求增长。
+    bear_case: 下游投资波动。
+    key_catalysts: [设备订单, 工艺升级, 客户导入]
+    key_risks: [订单延后, 需求波动, 竞争加剧]
+    priority: B
+  - code: 688549.SH
+    name: 中巨芯
+    theme: 先进封装
+    sub_theme: 材料
+    investment_thesis: 先进封装材料与电子化学品观察标的。
+    bull_case: 材料需求提升。
+    bear_case: 行业价格压力。
+    key_catalysts: [材料需求, 客户导入, 工艺升级]
+    key_risks: [价格压力, 需求波动, 竞争加剧]
+    priority: C
+  - code: 300672.SZ
+    name: 国科微
+    theme: 先进封装
+    sub_theme: 芯片/封装协同
+    investment_thesis: 芯片和封装协同观察标的，关注高端芯片封装升级。
+    bull_case: 芯片需求改善。
+    bear_case: 竞争和价格波动。
+    key_catalysts: [芯片升级, 封装协同, 客户导入]
+    key_risks: [价格波动, 需求放缓, 竞争加剧]
+    priority: C
+  - code: 300327.SZ
+    name: 中颖电子
+    theme: 先进封装
+    sub_theme: 芯片/工艺
+    investment_thesis: 芯片工艺与封装协同观察标的。
+    bull_case: 工艺升级带动需求。
+    bear_case: 市场竞争加剧。
+    key_catalysts: [工艺升级, 客户导入, 需求修复]
+    key_risks: [竞争加剧, 需求波动, 订单延后]
+    priority: C
+  - code: 002916.SZ
+    name: 深南电路
+    theme: 先进封装
+    sub_theme: 载板/PCB
+    investment_thesis: 高端PCB与载板核心标的，受益于先进封装和高性能计算。
+    bull_case: 高端载板需求提升。
+    bear_case: 周期波动。
+    key_catalysts: [载板需求, 客户导入, 产能利用率]
+    key_risks: [周期波动, 订单延后, 竞争加剧]
+    priority: A
+  - code: 300666.SZ
+    name: 江丰电子
+    theme: 先进封装
+    sub_theme: 材料/靶材
+    investment_thesis: 工艺材料与靶材在先进封装中有配套价值。
+    bull_case: 材料需求增长。
+    bear_case: 需求和价格波动。
+    key_catalysts: [材料需求, 客户导入, 国产替代]
+    key_risks: [价格波动, 需求放缓, 竞争加剧]
+    priority: B
+  - code: 688025.SH
+    name: 杰普特
+    theme: 先进封装
+    sub_theme: 激光设备/工艺
+    investment_thesis: 先进制造设备公司，适合观察封装工艺升级带来的设备需求。
+    bull_case: 工艺升级推动设备采购。
+    bear_case: 下游投资放缓。
+    key_catalysts: [工艺升级, 设备订单, 客户导入]
+    key_risks: [订单波动, 竞争加剧, 项目延后]
+    priority: C
+  - code: 603005.SH
+    name: 晶方科技
+    theme: 先进封装
+    sub_theme: 先进封装/传感器封装
+    investment_thesis: 先进封装和传感器封装观察标的。
+    bull_case: 传感器和先进封装需求增长。
+    bear_case: 行业周期波动。
+    key_catalysts: [封装需求, 客户导入, 工艺升级]
+    key_risks: [周期波动, 需求放缓, 竞争加剧]
+    priority: B
+  - code: 002405.SZ
+    name: 四维图新
+    theme: 先进封装
+    sub_theme: 芯片/终端协同
+    investment_thesis: 终端芯片与封装协同观察标的。
+    bull_case: 终端需求改善。
+    bear_case: 竞争和需求波动。
+    key_catalysts: [终端升级, 客户导入, 芯片协同]
+    key_risks: [需求波动, 竞争加剧, 变现慢]
+    priority: C
+  - code: 002463.SZ
+    name: 沪电股份
+    theme: 先进封装
+    sub_theme: 高端PCB/载板
+    investment_thesis: 高端PCB和封装载板重要标的，受益于AI服务器和先进封装升级。
+    bull_case: 高端载板需求持续增长。
+    bear_case: 行业周期回落。
+    key_catalysts: [高端PCB, 载板需求, 客户导入]
+    key_risks: [周期波动, 价格压力, 需求延后]
+    priority: A

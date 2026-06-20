@@ -1,0 +1,52 @@
+# 半导体相关催化事件库
+# 说明:
+# - 仅用于研究观察
+# - 不包含股价预测
+
+events:
+  - event_name: 国产设备订单确认
+    date: "2026-02-10"
+    importance: A
+    related_themes:
+      - 国产替代
+      - 先进封装
+    related_companies:
+      - 北方华创
+      - 中微公司
+      - 芯源微
+    expected_impact: 订单确认有助于验证国产替代和设备周期。
+  - event_name: 高端材料认证进展
+    date: "2026-03-08"
+    importance: A
+    related_themes:
+      - 国产替代
+      - 先进材料
+    related_companies:
+      - 安集科技
+      - 江丰电子
+      - 沪硅产业
+    expected_impact: 材料认证进展将影响国产化替代的研究判断。
+  - event_name: 先进封装产线爬坡
+    date: "2026-04-12"
+    importance: A
+    related_themes:
+      - 先进封装
+      - 玻璃基板
+    related_companies:
+      - 通富微电
+      - 长电科技
+      - 华天科技
+    expected_impact: 产线爬坡情况将影响封装链条的持续跟踪。
+  - event_name: 晶圆厂资本开支调整
+    date: "2026-05-30"
+    importance: B
+    related_themes:
+      - AI算力
+      - 国产替代
+      - 先进材料
+    related_companies:
+      - 北方华创
+      - 中微公司
+      - 海光信息
+    expected_impact: 资本开支变化将影响设备、材料和芯片链条研究节奏。
+

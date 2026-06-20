@@ -1,0 +1,206 @@
+﻿version: V8
+theme: 先进材料
+description: A股先进材料观察池，覆盖玻璃基板、人造金刚石、超硬材料、电子材料与高端工艺材料。
+auto_scoring: false
+
+companies:
+  - code: 688234.SH
+    name: 天岳先进
+    theme: 先进材料
+    sub_theme: 人造金刚石/碳化硅
+    investment_thesis: 高端材料和热管理链条核心观察标的。
+    bull_case: 工业应用扩展与产能提升。
+    bear_case: 价格下行和供给扩张。
+    key_catalysts: [产能提升, 工业应用扩展, 产品价格改善]
+    key_risks: [价格下行, 需求波动, 扩产压力]
+    priority: A
+  - code: 002192.SZ
+    name: 融捷股份
+    theme: 先进材料
+    sub_theme: 人造金刚石
+    investment_thesis: 超硬材料和相关资源链观察标的。
+    bull_case: 行业景气修复。
+    bear_case: 行业周期下行。
+    key_catalysts: [行业景气改善, 下游需求扩张, 价格修复]
+    key_risks: [行业周期, 价格竞争, 产能过剩]
+    priority: B
+  - code: 300395.SZ
+    name: 菲利华
+    theme: 先进材料
+    sub_theme: 石英/高端材料
+    investment_thesis: 高端材料代表公司，观察先进工艺材料需求扩展。
+    bull_case: 高端材料需求增长。
+    bear_case: 需求波动。
+    key_catalysts: [材料需求增长, 客户导入, 应用扩展]
+    key_risks: [需求波动, 行业竞争, 估值回撤]
+    priority: B
+  - code: 600206.SH
+    name: 有研新材
+    theme: 先进材料
+    sub_theme: 电子材料
+    investment_thesis: 电子材料与稀有金属材料观察标的，关注高端制造材料需求。
+    bull_case: 电子材料需求提升。
+    bear_case: 材料价格波动。
+    key_catalysts: [电子材料需求, 产业链扩展, 客户导入]
+    key_risks: [价格波动, 需求放缓, 竞争加剧]
+    priority: B
+  - code: 600160.SH
+    name: 巨化股份
+    theme: 先进材料
+    sub_theme: 电子化学品/材料
+    investment_thesis: 电子化学材料和氟化工链条观察标的。
+    bull_case: 高端材料需求增长。
+    bear_case: 产业链价格波动。
+    key_catalysts: [材料需求, 新项目, 客户导入]
+    key_risks: [价格波动, 需求放缓, 扩产压力]
+    priority: B
+  - code: 002459.SZ
+    name: 晶澳科技
+    theme: 先进材料
+    sub_theme: 光伏材料
+    investment_thesis: 光伏材料链观察标的，关注高端材料制造协同。
+    bull_case: 新能源材料需求改善。
+    bear_case: 行业价格下行。
+    key_catalysts: [材料协同, 产能释放, 需求回暖]
+    key_risks: [价格竞争, 需求波动, 供给过剩]
+    priority: C
+  - code: 603260.SH
+    name: 合盛硅业
+    theme: 先进材料
+    sub_theme: 硅基材料
+    investment_thesis: 硅基材料和工业材料观察标的。
+    bull_case: 材料需求和成本改善。
+    bear_case: 行业周期下行。
+    key_catalysts: [材料需求, 成本改善, 客户导入]
+    key_risks: [价格波动, 需求放缓, 竞争加剧]
+    priority: B
+  - code: 603688.SH
+    name: 石英股份
+    theme: 先进材料
+    sub_theme: 石英材料
+    investment_thesis: 高纯石英材料观察标的，受益于半导体与光伏工艺升级。
+    bull_case: 高纯材料需求持续。
+    bear_case: 下游周期波动。
+    key_catalysts: [高纯材料需求, 客户导入, 国产替代]
+    key_risks: [价格波动, 需求下行, 竞争加剧]
+    priority: A
+  - code: 002371.SZ
+    name: 北方华创
+    theme: 先进材料
+    sub_theme: 工艺装备/材料协同
+    investment_thesis: 高端制造与材料工艺协同的重要观察标的。
+    bull_case: 工艺与材料协同升级。
+    bear_case: 下游资本开支波动。
+    key_catalysts: [工艺升级, 材料协同, 设备订单]
+    key_risks: [订单波动, 需求延后, 竞争压力]
+    priority: A
+  - code: 688019.SH
+    name: 安集科技
+    theme: 先进材料
+    sub_theme: CMP材料
+    investment_thesis: CMP与半导体材料核心观察标的。
+    bull_case: 高端材料国产化推进。
+    bear_case: 客户认证周期长。
+    key_catalysts: [材料认证, 客户导入, 国产替代]
+    key_risks: [认证慢, 价格波动, 竞争加剧]
+    priority: A
+  - code: 300236.SZ
+    name: 上海新阳
+    theme: 先进材料
+    sub_theme: 电子材料
+    investment_thesis: 半导体化学材料观察标的，关注工艺升级与国产替代。
+    bull_case: 国产电子材料需求提升。
+    bear_case: 认证和导入周期长。
+    key_catalysts: [客户认证, 工艺升级, 国产替代]
+    key_risks: [需求波动, 价格压力, 竞争加剧]
+    priority: B
+  - code: 688303.SH
+    name: 大全能源
+    theme: 先进材料
+    sub_theme: 硅基材料
+    investment_thesis: 硅基材料供应链观察标的，关注产业链周期。
+    bull_case: 需求恢复与成本改善。
+    bear_case: 行业价格波动。
+    key_catalysts: [需求回暖, 成本改善, 产能利用率提升]
+    key_risks: [价格下行, 需求波动, 供给过剩]
+    priority: C
+  - code: 688026.SH
+    name: 洁特生物
+    theme: 先进材料
+    sub_theme: 材料耗材
+    investment_thesis: 材料耗材与高端制造配套观察标的。
+    bull_case: 高端耗材需求增加。
+    bear_case: 下游需求波动。
+    key_catalysts: [耗材需求, 客户拓展, 国产替代]
+    key_risks: [需求波动, 竞争加剧, 利润率压力]
+    priority: C
+  - code: 688398.SH
+    name: 赛特新材
+    theme: 先进材料
+    sub_theme: 先进材料
+    investment_thesis: 先进材料与工艺材料观察标的。
+    bull_case: 材料需求改善。
+    bear_case: 行业竞争加剧。
+    key_catalysts: [材料需求, 客户导入, 工艺升级]
+    key_risks: [需求波动, 竞争加剧, 估值回撤]
+    priority: C
+  - code: 002709.SZ
+    name: 天赐材料
+    theme: 先进材料
+    sub_theme: 电子化学材料
+    investment_thesis: 电子化学材料和制造材料核心标的。
+    bull_case: 新材料需求修复。
+    bear_case: 行业价格波动。
+    key_catalysts: [材料需求, 产能释放, 客户导入]
+    key_risks: [价格波动, 需求放缓, 竞争加剧]
+    priority: B
+  - code: 300568.SZ
+    name: 星源材质
+    theme: 先进材料
+    sub_theme: 功能材料
+    investment_thesis: 功能材料观察标的，关注先进制造和工艺材料需求。
+    bull_case: 功能材料需求增长。
+    bear_case: 行业价格压力。
+    key_catalysts: [材料需求, 客户导入, 产能释放]
+    key_risks: [价格竞争, 需求波动, 扩产压力]
+    priority: B
+  - code: 688388.SH
+    name: 嘉元科技
+    theme: 先进材料
+    sub_theme: 金属材料/铜箔
+    investment_thesis: 新能源和先进制造材料观察标的。
+    bull_case: 材料需求改善。
+    bear_case: 周期波动和价格压力。
+    key_catalysts: [材料需求, 客户导入, 产能释放]
+    key_risks: [价格波动, 需求放缓, 竞争加剧]
+    priority: C
+  - code: 603260.SH
+    name: 合盛硅业
+    theme: 先进材料
+    sub_theme: 硅基材料
+    investment_thesis: 工业硅和材料链观察标的。
+    bull_case: 需求和成本改善。
+    bear_case: 行业周期下行。
+    key_catalysts: [材料需求, 成本改善, 客户导入]
+    key_risks: [价格波动, 需求放缓, 竞争加剧]
+    priority: B
+  - code: 300724.SZ
+    name: 捷佳伟创
+    theme: 先进材料
+    sub_theme: 工艺装备/材料协同
+    investment_thesis: 先进制造工艺与材料协同观察标的。
+    bull_case: 工艺升级带动需求。
+    bear_case: 下游投资波动。
+    key_catalysts: [工艺升级, 设备订单, 客户导入]
+    key_risks: [需求波动, 项目延后, 竞争加剧]
+    priority: B
+  - code: 688502.SH
+    name: 茂莱光学
+    theme: 先进材料
+    sub_theme: 光学材料
+    investment_thesis: 光学材料与先进制造链观察标的。
+    bull_case: 光学材料需求增长。
+    bear_case: 行业需求波动。
+    key_catalysts: [材料需求, 客户导入, 工艺升级]
+    key_risks: [需求波动, 竞争加剧, 估值回撤]
+    priority: C

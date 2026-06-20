@@ -1,0 +1,206 @@
+﻿version: V8
+theme: 华为昇腾生态
+description: A股华为昇腾生态、AI服务器、软件适配、渠道与系统集成相关核心观察池。
+auto_scoring: false
+
+companies:
+  - code: 300496.SZ
+    name: 中科创达
+    theme: 华为昇腾生态
+    sub_theme: 软件适配
+    investment_thesis: 端侧与企业软件适配能力强，适合观察国产AI生态协同。
+    bull_case: 生态适配持续推进。
+    bear_case: 商业化落地慢。
+    key_catalysts: [AI适配项目, 生态合作, 客户导入]
+    key_risks: [项目周期长, 竞争加剧, 收入兑现慢]
+    priority: A
+  - code: 000034.SZ
+    name: 神州数码
+    theme: 华为昇腾生态
+    sub_theme: 渠道/系统集成
+    investment_thesis: 生态渠道与系统集成核心公司，受益于昇腾生态扩张。
+    bull_case: 渠道订单和解决方案放量。
+    bear_case: 项目验收节奏不稳。
+    key_catalysts: [渠道订单扩张, 解决方案落地, 生态伙伴增加]
+    key_risks: [项目验收延迟, 利润率承压, 竞争加剧]
+    priority: A
+  - code: 600588.SH
+    name: 用友网络
+    theme: 华为昇腾生态
+    sub_theme: 企业软件适配
+    investment_thesis: 企业软件与国产生态适配标的，关注昇腾相关兼容和协同。
+    bull_case: 国产软件生态协同增强。
+    bear_case: 交付和回款周期长。
+    key_catalysts: [国产软件适配, 企业客户升级, 平台协同增强]
+    key_risks: [交付周期延长, 客户预算收缩, 生态协同不足]
+    priority: B
+  - code: 002415.SZ
+    name: 海康威视
+    theme: 华为昇腾生态
+    sub_theme: 边缘AI/安防平台
+    investment_thesis: 边缘AI与行业平台公司，观察国产AI算力生态延伸。
+    bull_case: 边缘AI应用扩张。
+    bear_case: 海外与行业需求波动。
+    key_catalysts: [AI平台升级, 行业方案落地, 生态合作]
+    key_risks: [需求波动, 海外不确定性, 竞争加剧]
+    priority: B
+  - code: 002230.SZ
+    name: 科大讯飞
+    theme: 华为昇腾生态
+    sub_theme: AI应用适配
+    investment_thesis: 大模型和应用生态协同标的，观察昇腾生态与应用落地。
+    bull_case: AI应用和硬件协同推进。
+    bear_case: 变现节奏慢。
+    key_catalysts: [大模型合作, 企业客户扩张, 生态适配]
+    key_risks: [应用兑现不足, 研发投入高, 政策变化]
+    priority: A
+  - code: 000063.SZ
+    name: 中兴通讯
+    theme: 华为昇腾生态
+    sub_theme: 网络设备
+    investment_thesis: 通信网络和算力基础设施标的，受益于国产生态扩张。
+    bull_case: 网络设备和算力协同。
+    bear_case: 运营商投资节奏波动。
+    key_catalysts: [网络升级, 算力项目, 生态合作]
+    key_risks: [投资放缓, 竞争压力, 项目延后]
+    priority: A
+  - code: 002179.SZ
+    name: 中航光电
+    theme: 华为昇腾生态
+    sub_theme: 高可靠连接
+    investment_thesis: 高可靠连接器龙头，关注服务器与昇腾基础设施配套需求。
+    bull_case: 高可靠连接需求增长。
+    bear_case: 工业与通信需求波动。
+    key_catalysts: [数据中心项目, 高速连接需求, 客户导入]
+    key_risks: [项目周期长, 产品替代风险, 毛利率波动]
+    priority: B
+  - code: 002281.SZ
+    name: 光迅科技
+    theme: 华为昇腾生态
+    sub_theme: 光器件
+    investment_thesis: 光器件与光互联基础设施标的，适合观察生态配套需求。
+    bull_case: 光器件需求提升。
+    bear_case: 行业周期波动。
+    key_catalysts: [高速光器件, 客户扩展, 生态合作]
+    key_risks: [需求波动, 竞争加剧, 订单延后]
+    priority: B
+  - code: 300308.SZ
+    name: 中际旭创
+    theme: 华为昇腾生态
+    sub_theme: 光互联
+    investment_thesis: 高速光模块核心厂商，受益于国产AI生态和算力网络扩展。
+    bull_case: 互联需求放量。
+    bear_case: 海外需求与价格波动。
+    key_catalysts: [高速互联需求, AI集群扩容, 订单改善]
+    key_risks: [价格竞争, 需求波动, 客户集中度]
+    priority: A
+  - code: 603083.SH
+    name: 剑桥科技
+    theme: 华为昇腾生态
+    sub_theme: 网络互联
+    investment_thesis: 网络连接与通信设备公司，观察国产生态升级带来的配套机会。
+    bull_case: 网络升级需求提升。
+    bear_case: 订单节奏不稳。
+    key_catalysts: [网络设备订单, 算力互联, 客户扩展]
+    key_risks: [项目延后, 价格压力, 竞争加剧]
+    priority: B
+  - code: 300394.SZ
+    name: 天孚通信
+    theme: 华为昇腾生态
+    sub_theme: 光互联
+    investment_thesis: 光器件与连接核心公司，适合观察昇腾生态互联升级。
+    bull_case: 高速连接需求改善。
+    bear_case: 需求和价格波动。
+    key_catalysts: [光器件放量, 数据中心互联, 客户扩展]
+    key_risks: [价格压力, 订单延后, 竞争加剧]
+    priority: A
+  - code: 688041.SH
+    name: 海光信息
+    theme: 华为昇腾生态
+    sub_theme: CPU/GPU生态
+    investment_thesis: 国产高性能计算芯片公司，适合观察国产算力生态与昇腾链条互动。
+    bull_case: 高性能计算需求增长。
+    bear_case: 出货与生态节奏波动。
+    key_catalysts: [服务器导入, 生态协同, 算力需求]
+    key_risks: [需求波动, 供应链压力, 产品迭代风险]
+    priority: A
+  - code: 688256.SH
+    name: 寒武纪
+    theme: 华为昇腾生态
+    sub_theme: AI芯片
+    investment_thesis: AI芯片设计公司，观察国产AI生态协同进展。
+    bull_case: 国产AI芯片生态建设加速。
+    bear_case: 商业化仍需时间。
+    key_catalysts: [芯片迭代, 客户导入, 生态合作]
+    key_risks: [商业化进度慢, 研发投入高, 竞争加剧]
+    priority: A
+  - code: 688111.SH
+    name: 金山办公
+    theme: 华为昇腾生态
+    sub_theme: 软件生态
+    investment_thesis: 国产软件生态核心公司，适合观察国产AI办公与适配进展。
+    bull_case: 软件生态协同增强。
+    bear_case: 付费效率波动。
+    key_catalysts: [生态适配, 产品升级, 客户扩张]
+    key_risks: [增速波动, 竞争加剧, 估值回撤]
+    priority: C
+  - code: 688039.SH
+    name: 当虹科技
+    theme: 华为昇腾生态
+    sub_theme: AI视频/软件
+    investment_thesis: AI视频与行业软件标的，观察昇腾生态协同和落地。
+    bull_case: 行业方案扩张。
+    bear_case: 商业化节奏慢。
+    key_catalysts: [AI视频合作, 行业项目, 客户导入]
+    key_risks: [订单波动, 竞争加剧, 转化不足]
+    priority: C
+  - code: 300252.SZ
+    name: 金信诺
+    theme: 华为昇腾生态
+    sub_theme: 连接器/通信
+    investment_thesis: 通信连接器标的，观察国产生态下的配套机会。
+    bull_case: 通信和算力配套需求提升。
+    bear_case: 需求波动。
+    key_catalysts: [通信订单, 算力配套, 客户导入]
+    key_risks: [项目周期, 价格压力, 竞争加剧]
+    priority: C
+  - code: 600271.SH
+    name: 航天信息
+    theme: 华为昇腾生态
+    sub_theme: 企业信息化
+    investment_thesis: 企业信息化与国产软件生态配套标的，关注适配与项目落地。
+    bull_case: 企业升级需求改善。
+    bear_case: 项目回款压力。
+    key_catalysts: [国产化项目, 企业客户, 生态合作]
+    key_risks: [交付周期长, 预算收缩, 竞争加剧]
+    priority: C
+  - code: 000938.SZ
+    name: 紫光股份
+    theme: 华为昇腾生态
+    sub_theme: 网络设备/系统集成
+    investment_thesis: 网络与系统集成标的，适合观察国产AI生态和超节点配套需求。
+    bull_case: 政企项目和算力项目扩张。
+    bear_case: 项目周期拉长。
+    key_catalysts: [政企项目, 网络升级, 算力集群]
+    key_risks: [项目延后, 利润率波动, 竞争压力]
+    priority: B
+  - code: 601138.SH
+    name: 工业富联
+    theme: 华为昇腾生态
+    sub_theme: 服务器制造
+    investment_thesis: 服务器制造能力强，适合观察国产AI算力生态放量。
+    bull_case: 服务器出货增长。
+    bear_case: 行业周期波动。
+    key_catalysts: [服务器订单, 算力扩张, 客户导入]
+    key_risks: [订单波动, 价格竞争, 毛利率承压]
+    priority: A
+  - code: 600733.SH
+    name: 北汽蓝谷
+    theme: 华为昇腾生态
+    sub_theme: 终端生态
+    investment_thesis: 观察华为生态终端协同和产业链外溢机会。
+    bull_case: 终端生态协同增强。
+    bear_case: 需求波动。
+    key_catalysts: [生态合作, 产品迭代, 终端需求]
+    key_risks: [竞争加剧, 订单波动, 盈利压力]
+    priority: C
