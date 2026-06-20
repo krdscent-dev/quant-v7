@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib.util
 import inspect
+import json
 import os
 import pathlib
 import sys
@@ -58,6 +59,14 @@ def main() -> int:
     print(f"collected={result.testsRun}")
     print(f"passed={result.testsRun - len(result.failures) - len(result.errors)}")
     print(f"failed={len(result.failures) + len(result.errors)}")
+    summary_path = ROOT / ".codex_last_pytest.json"
+    summary = {
+        "tests_run": result.testsRun,
+        "passed": result.testsRun - len(result.failures) - len(result.errors),
+        "failed": len(result.failures) + len(result.errors),
+        "success": not (result.failures or result.errors),
+    }
+    summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     if result.failures or result.errors:
         print("failures:")
         for test, tb in result.failures + result.errors:

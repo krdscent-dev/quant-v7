@@ -35,9 +35,10 @@ from src.rebalancing.rebalance_contract import CurrentHolding
 from src.rebalancing.rebalance_engine import RebalanceEngine
 from src.risk.risk_management_engine import RiskManagementEngine
 from src.provider_trust.trust_report import format_trust_ranking
+from src.audit.audit_engine import AuditEngine
 
 
-WEEKLY_REPORT_LAYOUT_VERSION = 2
+WEEKLY_REPORT_LAYOUT_VERSION = 3
 
 
 @dataclass(frozen=True)
@@ -444,6 +445,31 @@ def _quality_sections() -> dict[str, Any]:
     }
 
 
+def _audit_sections() -> dict[str, Any]:
+    audit_report = AuditEngine().run()
+    checks = [
+        {
+            "category": item.category,
+            "item": item.item,
+            "status": item.status,
+            "severity": item.severity,
+            "message": item.message,
+        }
+        for item in audit_report.checks
+    ]
+    return {
+        "audit_report": {
+            "timestamp": audit_report.timestamp,
+            "checks": checks,
+            "passed_count": audit_report.passed_count,
+            "warning_count": audit_report.warning_count,
+            "failed_count": audit_report.failed_count,
+            "overall_status": audit_report.overall_status,
+            "skill_readiness": dict(audit_report.skill_readiness),
+        }
+    }
+
+
 def _generate_weekly_report(base_dir: Path) -> Path:
     rows = build_weekly_report_data()
     trust_scores = _trust_snapshot()
@@ -461,6 +487,7 @@ def _generate_weekly_report(base_dir: Path) -> Path:
     kb_sections = _knowledge_base_sections(rows)
     workflow_sections = _workflow_sections(rows, portfolio_snapshot, position_snapshot, risk_report, rebalance_plan, backtest_payload)
     quality_sections = _quality_sections()
+    audit_sections = _audit_sections()
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -743,6 +770,20 @@ def _generate_weekly_report(base_dir: Path) -> Path:
     lines.append("")
     lines.append("## 48. RC1 Status")
     lines.append(f"- {quality_sections['rc1_status']}")
+    lines.append("")
+    lines.append("## 49. Audit Report")
+    audit_report = audit_sections["audit_report"]
+    lines.append(f"- overall_status: {audit_report['overall_status']}")
+    lines.append(f"- passed_count: {audit_report['passed_count']}")
+    lines.append(f"- warning_count: {audit_report['warning_count']}")
+    lines.append(f"- failed_count: {audit_report['failed_count']}")
+    lines.append(f"- timestamp: {audit_report['timestamp']}")
+    lines.append("")
+    lines.append("## 50. Skill Readiness")
+    for skill, status in audit_report["skill_readiness"].items():
+        lines.append(f"- {skill}: {status}")
+    if not audit_report["skill_readiness"]:
+        lines.append("- none")
     lines.append("")
 
     output_path = base_dir / "reports" / "weekly_report.md"

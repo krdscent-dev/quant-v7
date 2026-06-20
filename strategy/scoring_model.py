@@ -1,4 +1,4 @@
-﻿"""Legacy / sample scoring module.
+﻿"""Compatibility / sample scoring module.
 
 This file is retained for backward compatibility and examples only.
 The primary strategic scoring entry point is now
@@ -65,3 +65,4 @@ def score_stock(
             "packaging": packaging_score,
         },
     )
+

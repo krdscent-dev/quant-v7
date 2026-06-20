@@ -1,7 +1,7 @@
-"""Factor input compatibility package.
+﻿"""Factor input compatibility package.
 
 This package provides a stable contract for turning validated data into
-factor-ready inputs. The legacy research stack may continue to use
+factor-ready inputs. The existing research stack may continue to use
 `core.data_mapping`, while newer code can depend on these contract
 objects and builders directly.
 """
@@ -17,4 +17,5 @@ __all__ = [
     "ValidationStatus",
     "confidence_from_validation_status",
 ]
+
 
