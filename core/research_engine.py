@@ -12,6 +12,8 @@ from typing import Any, Mapping
 
 from core.factor_registry import DEFAULT_FACTOR_REGISTRY
 from core.data_mapping import DataMappingLayer
+from src.explainability.decision_explainer import DecisionExplainer
+from src.explainability.score_explainer import ScoreExplainer
 from strategy.strategic_score_engine import calculate_strategic_score
 from src.evidence.evidence_chain_builder import EvidenceChainBuilder
 
@@ -29,6 +31,8 @@ class ResearchDecision:
     decision_action: str = "WATCH"
     overall_confidence: float = 1.0
     evidence_refs: Mapping[str, Any] = field(default_factory=dict)
+    score_explanation: Mapping[str, Any] = field(default_factory=dict)
+    decision_explanation: Mapping[str, Any] = field(default_factory=dict)
 
 
 class ResearchEngine:
@@ -157,6 +161,12 @@ class ResearchEngine:
         factor_scores = self._calculate_factor_scores(factor_input)
         strategic_result = calculate_strategic_score({**factor_input, **factor_scores})
         evidence_chain = EvidenceChainBuilder().from_factor_input({**factor_input, **factor_scores})
+        score_explanation = ScoreExplainer().explain(
+            {**factor_input, **factor_scores},
+            strategic_result.strategic_score,
+            symbol=str(factor_input.get("company_code", factor_input.get("code", "UNKNOWN"))),
+            period=str(factor_input.get("period", "TTM")),
+        )
         theme_exposure = self._theme_exposure(factor_input)
         catalyst_strength = self._catalyst_strength(factor_input)
         order_confirmation_level = self._order_confirmation_level(factor_input, factor_scores)
@@ -178,6 +188,17 @@ class ResearchEngine:
         if core_invalid:
             research_conclusion = f"{research_conclusion} 核心财务因子存在无效或缺失信号，建议降级处理。"
         risk_summary = self._risk_summary(factor_input, factor_scores)
+        decision_explanation = DecisionExplainer().explain(
+            symbol=str(factor_input.get("company_code", factor_input.get("code", "UNKNOWN"))),
+            period=str(factor_input.get("period", "TTM")),
+            strategic_score=strategic_result.strategic_score,
+            research_decision={
+                "decision_action": decision_action,
+                "overall_confidence": round(overall_confidence, 2),
+            },
+            evidence_chain=evidence_chain,
+            score_explanation=score_explanation,
+        )
 
         return ResearchDecision(
             theme_exposure=theme_exposure,
@@ -189,6 +210,8 @@ class ResearchEngine:
             decision_action=decision_action,
             overall_confidence=round(overall_confidence, 2),
             evidence_refs={"evidence_chain": evidence_chain},
+            score_explanation={"score_explanation": score_explanation},
+            decision_explanation={"decision_explanation": decision_explanation},
         )
 
 
@@ -232,6 +255,8 @@ def run_research_pipeline(company_code: str) -> dict[str, Any]:
         "research_conclusion": decision.research_conclusion,
         "evidence_refs": decision.evidence_refs,
         "evidence_summary": EvidenceChainBuilder().to_dict(evidence_chain) if evidence_chain is not None else {},
+        "score_explanation": decision.score_explanation,
+        "decision_explanation": decision.decision_explanation,
     }
 
 
