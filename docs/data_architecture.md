@@ -1,19 +1,19 @@
-# Data Architecture
+﻿# Data Architecture
 
-This document describes the future data flow of the V8 research engine.
+This document describes the data flow of the V8 research engine.
 
 ## 1. Data Flow
 
 ```mermaid
 flowchart TD
-  A["数据源"] --> B["因子"]
-  B --> C["评分"]
-  C --> D["研究报告"]
+  A["Data source"] --> B["Factor layer"]
+  B --> C["Scoring layer"]
+  C --> D["Research reports"]
 ```
 
 ## 2. Layer Description
 
-### 数据源
+### Data source
 
 The data layer provides company basic info, financial summaries, order
 signals, news signals, and theme signals.
@@ -21,27 +21,27 @@ signals, news signals, and theme signals.
 Current state:
 
 - Mock Data only
-- No external API integration
+- No external API integration required
 - Unified provider interface for future AkShare / Tushare adapters
 
-### 因子
+### Factor layer
 
 The factor layer transforms raw data into research-side signals, such as:
 
-- τ 因子
-- order_confirmation_score
+- `tau_factor_score`
+- `order_confirmation_score`
 - theme exposure
 - strategic trend signals
 
-### 评分
+### Scoring layer
 
 The scoring layer consumes factor outputs and produces:
 
-- strategic_score
-- factor_breakdown
-- score_explanation
+- `strategic_score`
+- `factor_breakdown`
+- `score_explanation`
 
-### 研究报告
+### Research reports
 
 The reporting layer converts scores and events into:
 
@@ -60,7 +60,13 @@ All providers must inherit from `DataProvider` and implement:
 - `get_news_signals()`
 - `get_theme_signals()`
 
-## 4. Future Extension
+## 4. AkShare Adapter
+
+`data_sources/akshare_provider.py` is a thin adapter that may return
+placeholder payloads when AkShare is not installed. It is designed to
+stay source-side only and should not contain factor logic.
+
+## 5. Future Extension
 
 Planned future adapters:
 
