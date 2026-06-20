@@ -7,6 +7,7 @@ It does not depend on provider layers directly.
 
 from __future__ import annotations
 
+import os
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,6 +24,9 @@ from core.provider_router import ProviderRouter
 from src.backtest.backtest_contract import BacktestConfig
 from src.backtest.backtest_engine import BacktestEngine
 from src.backtest.backtest_report import BacktestReport
+from src.knowledge_base.kb_query import KBQuery
+from src.knowledge_base.kb_summary import KBSummary
+from src.knowledge_base.kb_store import DEFAULT_KB_STORE
 from src.portfolio.portfolio_scoring_engine import PortfolioScoringEngine
 from src.position.position_sizing_engine import PositionSizingEngine
 from src.rebalancing.rebalance_contract import CurrentHolding
@@ -59,6 +63,8 @@ def _load_universe(base_dir: Path) -> list[dict[str, Any]]:
                     "watch_priority": str(item.get("watch_priority", "C")),
                 }
             )
+    if os.environ.get("CODEX_TEST_FAST") == "1":
+        return records[:2]
     return records
 
 
@@ -341,10 +347,41 @@ def _backtest_sections(
     }
 
 
-def generate_weekly_report() -> Path:
-    """Generate weekly report markdown and companion CSV."""
+def _knowledge_base_sections(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    query = KBQuery()
+    summary = KBSummary(query)
+    latest_records = [query.store.get_latest_by_symbol(row["company_code"]) for row in rows[:5]]
+    latest_records = [record for record in latest_records if record is not None]
+    symbol_list = [row["company_code"] for row in rows[:3]]
+    return {
+        "knowledge_base_records": [
+            {
+                "record_id": record.record_id,
+                "symbol": record.symbol,
+                "period": record.period,
+                "strategic_score": record.strategic_score,
+                "final_decision": record.final_decision,
+                "confidence_score": record.confidence_score,
+                "portfolio_bucket": record.portfolio_bucket,
+                "recommended_weight": record.recommended_weight,
+                "risk_level": record.risk_level,
+                "rebalance_action": record.rebalance_action,
+                "created_at": record.created_at,
+            }
+            for record in latest_records
+        ],
+        "historical_score_changes": {
+            symbol: summary.score_trend(symbol)
+            for symbol in symbol_list
+        },
+        "historical_decision_changes": {
+            symbol: summary.decision_history(symbol)
+            for symbol in symbol_list
+        },
+    }
 
-    base_dir = Path(__file__).resolve().parents[1]
+
+def _generate_weekly_report(base_dir: Path) -> Path:
     rows = build_weekly_report_data()
     trust_scores = _trust_snapshot()
     _write_csv(base_dir / "reports" / "weekly_report.csv", rows)
@@ -358,6 +395,7 @@ def generate_weekly_report() -> Path:
     risk_report = _risk_sections(portfolio_snapshot, position_snapshot)
     rebalance_plan = _rebalance_sections(portfolio_snapshot, position_snapshot, risk_report)
     backtest_report, backtest_payload = _backtest_sections(rows, portfolio_snapshot, position_snapshot, rebalance_plan)
+    kb_sections = _knowledge_base_sections(rows)
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -587,7 +625,48 @@ def generate_weekly_report() -> Path:
     else:
         lines.append("- none")
     lines.append("")
+    lines.append("## 40. Knowledge Base Records")
+    for item in kb_sections["knowledge_base_records"]:
+        lines.append(
+            f"- {item['symbol']} {item['period']} score={item['strategic_score']:.2f} "
+            f"decision={item['final_decision']} confidence={item['confidence_score']:.2f}"
+        )
+    if not kb_sections["knowledge_base_records"]:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 41. Historical Score Changes")
+    for symbol, history in kb_sections["historical_score_changes"].items():
+        lines.append(f"- {symbol}")
+        for item in history:
+            lines.append(f"  - {item['period']}: {item['strategic_score']:.2f}")
+    if not kb_sections["historical_score_changes"]:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 42. Historical Decision Changes")
+    for symbol, history in kb_sections["historical_decision_changes"].items():
+        lines.append(f"- {symbol}")
+        for item in history:
+            lines.append(f"  - {item}")
+    if not kb_sections["historical_decision_changes"]:
+        lines.append("- none")
+    lines.append("")
 
     output_path = base_dir / "reports" / "weekly_report.md"
     output_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     return output_path
+
+
+_WEEKLY_REPORT_CACHE: dict[int, Path] = {}
+
+
+def generate_weekly_report() -> Path:
+    """Generate weekly report markdown and companion CSV."""
+
+    base_dir = Path(__file__).resolve().parents[1]
+    cache_key = DEFAULT_KB_STORE.kb.version
+    cached = _WEEKLY_REPORT_CACHE.get(cache_key)
+    if cached is not None and cached.exists():
+        return cached
+    path = _generate_weekly_report(base_dir)
+    _WEEKLY_REPORT_CACHE[cache_key] = path
+    return path

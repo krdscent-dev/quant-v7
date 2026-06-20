@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib.util
 import inspect
+import os
 import pathlib
 import sys
 import traceback
@@ -38,6 +39,9 @@ def _run_function_tests(module: types.ModuleType, result: unittest.TestResult) -
 
 
 def main() -> int:
+    args = set(sys.argv[1:])
+    if "--full" not in args:
+        os.environ.setdefault("CODEX_TEST_FAST", "1")
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     if TEST_DIR.exists():

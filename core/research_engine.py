@@ -7,6 +7,7 @@ but not on any provider layer.
 
 from __future__ import annotations
 
+from functools import lru_cache
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
@@ -15,6 +16,7 @@ from core.data_mapping import DataMappingLayer
 from src.explainability.decision_explainer import DecisionExplainer
 from src.explainability.score_explainer import ScoreExplainer
 from src.factor_confidence.confidence_engine import ConfidenceEngine
+from src.knowledge_base.kb_store import DEFAULT_KB_STORE
 from strategy.strategic_score_engine import calculate_strategic_score
 from src.evidence.evidence_chain_builder import EvidenceChainBuilder
 
@@ -242,6 +244,7 @@ class ResearchEngine:
         )
 
 
+@lru_cache(maxsize=None)
 def run_research_pipeline(company_code: str) -> dict[str, Any]:
     """Run the end-to-end research pipeline for one company code."""
 
@@ -252,6 +255,22 @@ def run_research_pipeline(company_code: str) -> dict[str, Any]:
     strategic_result = calculate_strategic_score({**factor_input, **factor_scores})
     decision = engine.analyze({**factor_input, **factor_scores})
     evidence_chain = decision.evidence_refs.get("evidence_chain") if isinstance(decision.evidence_refs, Mapping) else None
+    DEFAULT_KB_STORE.add_record(
+        {
+            "symbol": company_code,
+            "period": str(factor_input.get("period", "TTM")),
+            "strategic_score": decision.strategic_score,
+            "final_decision": decision.decision_action,
+            "confidence_score": decision.overall_confidence,
+            "evidence_refs": decision.evidence_refs,
+            "explanation_summary": decision.research_conclusion,
+            "portfolio_bucket": "",
+            "recommended_weight": 0.0,
+            "risk_level": "",
+            "rebalance_action": "",
+            "backtest_metrics": {},
+        }
+    )
 
     return {
         "company_code": company_code,
