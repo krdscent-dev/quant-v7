@@ -1,0 +1,112 @@
+version: V9_RC1
+watchlist_type: growth_trend
+description: 产业趋势观察池，不直接影响核心评分逻辑
+
+top_level_themes:
+  - theme_name: AI算力
+    status: 🟡
+    current_score: 0.07
+    previous_score: 0.06
+    score_change: 0.01
+    catalyst_event: 数据中心与服务器订单持续验证
+    key_companies:
+      - 浪潮信息
+      - 中际旭创
+      - 科大讯飞
+    notes: 本周唯一持续活跃主题，仍以观察为主
+
+  - theme_name: AI国产替代
+    status: ⚪
+    current_score: 0.00
+    previous_score: 0.00
+    score_change: 0.00
+    catalyst_event: 供给链验证待增强
+    key_companies:
+      - 士兰微
+      - 北方华创
+      - 中微公司
+    notes: 以国产替代与供应链安全为主线
+
+  - theme_name: 新材料
+    status: 🟡
+    current_score: 0.01
+    previous_score: 0.00
+    score_change: 0.01
+    catalyst_event: 玻璃基板与高端封装材料的工艺验证
+    key_companies:
+      - 三安光电
+      - 天岳先进
+      - 通富微电
+    notes: 独立观察池，暂不纳入买入池
+
+  - theme_name: 创新药
+    status: ⚪
+    current_score: 0.00
+    previous_score: 0.00
+    score_change: 0.00
+    catalyst_event: ADC / 双抗 / GLP-1 / 核药 / 出海BD
+    key_companies:
+      - 恒瑞医药
+      - 百济神州
+      - 君实生物
+    notes: 观察行业趋势、临床和出海进展
+
+  - theme_name: CXO
+    status: ⚪
+    current_score: 0.00
+    previous_score: 0.00
+    score_change: 0.00
+    catalyst_event: 海外订单恢复与行业景气修复
+    key_companies:
+      - 药明康德
+      - 凯莱英
+      - 泰格医药
+    notes: CRO/CDMO 及海外订单恢复持续跟踪
+
+  - theme_name: 能源安全与煤基新材料
+    status: 🟡
+    current_score: 0.01
+    previous_score: 0.01
+    score_change: 0.00
+    catalyst_event: 煤化工替代与能源安全政策支持
+    key_companies:
+      - 宝丰能源
+      - 中国神华
+      - 恒力石化
+    notes: 重点跟踪煤基烯烃与高端化工材料
+
+new_material_watchlist:
+  - direction_name: 玻璃基板
+    status: ⚪
+    catalyst_score: 0.00
+    verification_score: 0.00
+    watch_companies:
+      - 三安光电
+      - 睿创微纳
+    notes: 工艺验证优先，暂不进入买入池
+  - direction_name: 人造金刚石 / 金刚石半导体
+    status: 🟡
+    catalyst_score: 0.01
+    verification_score: 0.00
+    watch_companies:
+      - 天岳先进
+      - 融捷股份
+      - 菲利华
+    notes: 超硬材料与热管理链条独立跟踪
+  - direction_name: 先进散热材料
+    status: ⚪
+    catalyst_score: 0.00
+    verification_score: 0.00
+    watch_companies:
+      - 通富微电
+      - 长电科技
+    notes: 关注散热方案与封装协同
+  - direction_name: 先进封装材料
+    status: 🟡
+    catalyst_score: 0.01
+    verification_score: 0.00
+    watch_companies:
+      - 通富微电
+      - 华天科技
+      - 长电科技
+    notes: 先进封装材料链条持续跟踪
