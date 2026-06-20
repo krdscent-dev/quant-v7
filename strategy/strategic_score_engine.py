@@ -1,4 +1,4 @@
-"""V8 Strategic Score Engine.
+﻿"""V8 Strategic Score Engine.
 
 This module implements a research-oriented strategic scoring engine.
 It ranks companies or instruments based on medium-term industrial trend
@@ -17,24 +17,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
 import csv
-import sys
 
 try:
     import yaml
 except ImportError as exc:  # pragma: no cover - runtime dependency guard
     raise SystemExit("PyYAML is required to run strategy/strategic_score_engine.py") from exc
 
-
-@dataclass(frozen=True)
-class StrategicScoreBreakdown:
-    """Component-level score breakdown."""
-
-    tau_factor_score: float
-    supernode_score: float
-    domestic_substitution_score: float
-    advanced_packaging_score: float
-    order_confirmation_score: float
-    advanced_material_score: float
+from core.data_mapping import DataMappingLayer
+from data_sources.mock_provider import MockDataProvider
+from factors.order_confirmation_factor import calculate_order_confirmation_score
 
 
 @dataclass(frozen=True)
@@ -64,62 +55,24 @@ def _clamp_0_100(value: float) -> float:
 
 
 def _normalize_input_score(value: Any) -> float:
-    """Normalize user-provided research factors to a 0-100 scale.
-
-    The engine accepts already-scaled research values or 0-1 placeholders.
-    """
-
     score = float(value)
     if 0.0 <= score <= 1.0:
         score *= 100.0
     return _clamp_0_100(score)
 
 
-def _derive_order_confirmation_score(factors: Mapping[str, Any]) -> float:
-    """Placeholder logic for order confirmation strength.
-
-    The intent is to capture whether a story is moving into earnings
-    validation. The score reflects four research dimensions:
-    - order landing
-    - revenue confirmation
-    - customer validation
-    - story-to-earnings transition
-
-    No external data sources are used here. Inputs are expected to be
-    research-side placeholders or analyst-assigned values.
-    """
-
-    order_landing = _normalize_input_score(factors.get("order_landing_score", 0.0))
-    revenue_confirmation = _normalize_input_score(factors.get("revenue_confirmation_score", 0.0))
-    customer_validation = _normalize_input_score(factors.get("customer_validation_score", 0.0))
-    story_to_earnings = _normalize_input_score(factors.get("story_to_earnings_score", 0.0))
-
-    return _clamp_0_100(
-        0.35 * order_landing
-        + 0.30 * revenue_confirmation
-        + 0.20 * customer_validation
-        + 0.15 * story_to_earnings
-    )
-
-
-def calculate_strategic_score(
-    factor_dict: Mapping[str, Any],
-) -> StrategicScoreResult:
+def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreResult:
     """Calculate the strategic score for a single company or instrument.
 
-    Input:
-        factor_dict: A research-side factor dictionary for one company.
-
     Output:
-        StrategicScoreResult containing:
-        - strategic_score
-        - factor_breakdown
-        - score_explanation
+    - strategic_score
+    - factor_breakdown
+    - score_explanation
 
     Notes:
-        - This is a research ranking tool, not a buy/sell recommendation.
-        - The score is constrained to the 0-100 range.
-        - The engine intentionally uses a medium-term horizon (12-24 months).
+    - This is a research ranking tool, not a buy/sell recommendation.
+    - The score is constrained to the 0-100 range.
+    - The engine intentionally uses a medium-term horizon (12-24 months).
     """
 
     code = str(factor_dict.get("code", "UNKNOWN"))
@@ -131,7 +84,17 @@ def calculate_strategic_score(
     domestic_substitution_score = _normalize_input_score(factor_dict.get("domestic_substitution_score", 0.0))
     advanced_packaging_score = _normalize_input_score(factor_dict.get("advanced_packaging_score", 0.0))
     advanced_material_score = _normalize_input_score(factor_dict.get("advanced_material_score", 0.0))
-    order_confirmation_score = _derive_order_confirmation_score(factor_dict)
+
+    order_confirmation_result = calculate_order_confirmation_score(
+        {
+            "new_orders": factor_dict.get("new_orders", 0.0),
+            "capacity_expansion": factor_dict.get("capacity_expansion", 0.0),
+            "management_guidance": factor_dict.get("management_guidance", 0.0),
+            "customer_verification": factor_dict.get("customer_verification", 0.0),
+            "revenue_acceleration": factor_dict.get("revenue_acceleration", 0.0),
+        }
+    )
+    order_confirmation_score = order_confirmation_result.order_confirmation_score
 
     strategic_score = _clamp_0_100(
         tau_factor_score * WEIGHTS["tau_factor_score"]
@@ -152,8 +115,7 @@ def calculate_strategic_score(
     }
 
     score_explanation = (
-        f"{name} ({code}) 属于 {theme} 主题，"
-        f"战略评分强调中期产业趋势强度。"
+        f"{name} ({code}) 属于 {theme} 主题，战略评分强调中期产业趋势强度。"
         f" 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。"
     )
 
@@ -187,22 +149,17 @@ def _load_core_universe(path: Path) -> list[dict[str, Any]]:
 
 
 def _build_demo_factor_payload(record: Mapping[str, Any]) -> dict[str, Any]:
-    """Create a research-only placeholder factor payload.
-
-    This intentionally avoids external APIs and market data. The values
-    are not predictions; they are only deterministic placeholders used to
-    exercise the scoring pipeline.
-    """
+    """Create a research-only placeholder factor payload."""
 
     priority = str(record.get("priority", "C"))
     priority_map = {"A": 88.0, "B": 72.0, "C": 58.0}
     base = priority_map.get(priority, 58.0)
     theme = str(record.get("theme", ""))
 
-    supernode_boost = 8.0 if "昇腾" in theme or "超节点" in theme else 0.0
+    supernode_boost = 8.0 if ("昇腾" in theme or "超节点" in theme) else 0.0
     domestic_boost = 7.0 if "国产替代" in theme else 0.0
     packaging_boost = 6.0 if "先进封装" in theme else 0.0
-    material_boost = 5.0 if "材料" in theme or "玻璃基板" in theme or "人造金刚石" in theme else 0.0
+    material_boost = 5.0 if ("材料" in theme or "玻璃基板" in theme or "人造金刚石" in theme) else 0.0
     tau_boost = 4.0 if "AI算力" in theme else 0.0
 
     return {
@@ -214,10 +171,11 @@ def _build_demo_factor_payload(record: Mapping[str, Any]) -> dict[str, Any]:
         "domestic_substitution_score": _clamp_0_100(base + domestic_boost),
         "advanced_packaging_score": _clamp_0_100(base + packaging_boost),
         "advanced_material_score": _clamp_0_100(base + material_boost),
-        "order_landing_score": 60.0 if priority == "A" else 45.0 if priority == "B" else 35.0,
-        "revenue_confirmation_score": 58.0 if priority == "A" else 42.0 if priority == "B" else 32.0,
-        "customer_validation_score": 62.0 if priority == "A" else 46.0 if priority == "B" else 34.0,
-        "story_to_earnings_score": 55.0 if priority == "A" else 40.0 if priority == "B" else 30.0,
+        "new_orders": 60.0 if priority == "A" else 45.0 if priority == "B" else 35.0,
+        "capacity_expansion": 55.0 if priority == "A" else 42.0 if priority == "B" else 30.0,
+        "management_guidance": 58.0 if priority == "A" else 40.0 if priority == "B" else 28.0,
+        "customer_verification": 62.0 if priority == "A" else 46.0 if priority == "B" else 34.0,
+        "revenue_acceleration": 57.0 if priority == "A" else 41.0 if priority == "B" else 29.0,
     }
 
 
@@ -279,16 +237,24 @@ def _write_markdown(path: Path, results: list[StrategicScoreResult]) -> None:
 
 
 def build_rankings() -> list[StrategicScoreResult]:
-    """Build ranking results from the existing core universe.
-
-    The score engine uses deterministic research placeholders instead of
-    external market data.
-    """
+    """Build ranking results from the existing core universe."""
 
     base_dir = Path(__file__).resolve().parents[1]
     core_universe_path = base_dir / "data" / "watchlists" / "a_share_core_universe.yaml"
     records = _load_core_universe(core_universe_path)
-    results = [calculate_strategic_score(_build_demo_factor_payload(record)) for record in records]
+    provider = MockDataProvider()
+    mapping_layer = DataMappingLayer(provider)
+
+    results: list[StrategicScoreResult] = []
+    for record in records:
+        payload = mapping_layer.build_strategic_score_payload(
+            code=record["code"],
+            name=record["name"],
+            theme=record["theme"],
+        )
+        payload.update(_build_demo_factor_payload(record))
+        results.append(calculate_strategic_score(payload))
+
     return sorted(results, key=lambda item: item.strategic_score, reverse=True)
 
 

@@ -1,4 +1,9 @@
-﻿"""综合评分模型模块。"""
+﻿"""Legacy / sample scoring module.
+
+This file is retained for backward compatibility and examples only.
+The primary strategic scoring entry point is now
+`strategy/strategic_score_engine.py`.
+"""
 
 from __future__ import annotations
 
@@ -37,16 +42,7 @@ def score_stock(
     packaging_score: float,
     weights: ScoringWeights | None = None,
 ) -> StockScore:
-    """计算股票综合评分。
-
-    总评分公式:
-        total_score = 0.25 * tau_score
-                    + 0.20 * ai_compute_score
-                    + 0.20 * ascend_supernode_score
-                    + 0.15 * domestic_substitution_score
-                    + 0.10 * advanced_material_score
-                    + 0.10 * packaging_score
-    """
+    """计算股票综合评分。"""
 
     w = weights or ScoringWeights()
     total_score = (
