@@ -1,4 +1,4 @@
-# Architecture V2
+﻿# Architecture V2
 
 This document describes the consolidated V8 architecture after the
 factor contract and registry refactor.
@@ -10,7 +10,8 @@ flowchart TD
   A["DataProvider"] --> B["Data Mapping"]
   B --> C["Factor Registry"]
   C --> D["Strategic Score Engine"]
-  D --> E["Reports"]
+  D --> E["Research Engine"]
+  E --> F["Reports"]
 ```
 
 ## 2. Layer Responsibilities
@@ -39,6 +40,12 @@ flowchart TD
 - Consumes standardized factor inputs
 - Produces strategic scores and explanations
 
+### Research Engine
+
+- Consumes `FactorInput`
+- Combines factor scores with strategic score output
+- Produces `ResearchDecision`
+
 ### Reports
 
 - Event analysis
@@ -51,6 +58,7 @@ flowchart TD
 - Source data can change without forcing downstream rewrites
 - Factor semantics are declared once in the registry
 - Strategic scoring stays centralized
+- Research judgment is separated from source selection
 - Reports remain a thin presentation layer
 
 ## 4. Entry Point Rules
@@ -59,6 +67,7 @@ flowchart TD
 - `strategy/scoring_model.py` is legacy / sample scoring only
 - Factor logic belongs in `factors/`
 - Source normalization belongs in `core/data_mapping.py`
+- Research decision logic belongs in `core/research_engine.py`
 
 ## 5. Design Goal
 
@@ -68,6 +77,7 @@ DataProvider
 -> Data Mapping
 -> Factor Registry
 -> Strategic Score Engine
+-> Research Engine
 -> Reports
 
 ## 6. Future Extension
