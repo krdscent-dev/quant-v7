@@ -61,6 +61,27 @@ def _normalize_input_score(value: Any) -> float:
     return _clamp_0_100(score)
 
 
+def _confidence_multiplier(value: Any) -> float:
+    score = float(value) if value is not None else 1.0
+    if score <= 0.0:
+        return 0.0
+    if score <= 1.0:
+        return score
+    return _clamp_0_100(score) / 100.0
+
+
+def _factor_confidence(factor_dict: Mapping[str, Any], factor_name: str) -> float:
+    candidate_keys = (
+        f"{factor_name}_confidence_score",
+        f"{factor_name}_confidence",
+        "confidence_score",
+    )
+    for key in candidate_keys:
+        if key in factor_dict:
+            return _confidence_multiplier(factor_dict.get(key))
+    return 1.0
+
+
 def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreResult:
     """Calculate the strategic score for a single company or instrument.
 
@@ -84,6 +105,7 @@ def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreR
     domestic_substitution_score = _normalize_input_score(factor_dict.get("domestic_substitution_score", 0.0))
     advanced_packaging_score = _normalize_input_score(factor_dict.get("advanced_packaging_score", 0.0))
     advanced_material_score = _normalize_input_score(factor_dict.get("advanced_material_score", 0.0))
+    confidence_score = _factor_confidence(factor_dict, "confidence")
 
     order_confirmation_result = calculate_order_confirmation_score(
         {
@@ -97,12 +119,15 @@ def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreR
     order_confirmation_score = order_confirmation_result.order_confirmation_score
 
     strategic_score = _clamp_0_100(
-        tau_factor_score * WEIGHTS["tau_factor_score"]
-        + supernode_score * WEIGHTS["supernode_score"]
-        + domestic_substitution_score * WEIGHTS["domestic_substitution_score"]
-        + advanced_packaging_score * WEIGHTS["advanced_packaging_score"]
-        + order_confirmation_score * WEIGHTS["order_confirmation_score"]
-        + advanced_material_score * WEIGHTS["advanced_material_score"]
+        (
+            tau_factor_score * WEIGHTS["tau_factor_score"]
+            + supernode_score * WEIGHTS["supernode_score"]
+            + domestic_substitution_score * WEIGHTS["domestic_substitution_score"]
+            + advanced_packaging_score * WEIGHTS["advanced_packaging_score"]
+            + order_confirmation_score * WEIGHTS["order_confirmation_score"]
+            + advanced_material_score * WEIGHTS["advanced_material_score"]
+        )
+        * confidence_score
     )
 
     factor_breakdown = {
@@ -112,6 +137,7 @@ def calculate_strategic_score(factor_dict: Mapping[str, Any]) -> StrategicScoreR
         "advanced_packaging_score": round(advanced_packaging_score, 2),
         "order_confirmation_score": round(order_confirmation_score, 2),
         "advanced_material_score": round(advanced_material_score, 2),
+        "confidence_score": round(confidence_score, 2),
     }
 
     score_explanation = (

@@ -40,6 +40,22 @@ class DataMappingLayer:
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
 
+    def _confidence_score_from_level(self, level: str) -> float:
+        mapping = {
+            "high": 1.00,
+            "medium": 0.75,
+            "low": 0.35,
+        }
+        return mapping.get(str(level).lower(), 0.0)
+
+    def _validation_status_from_level(self, level: str) -> str:
+        mapping = {
+            "high": "PASS",
+            "medium": "MINOR_DIFF",
+            "low": "MAJOR_DIFF",
+        }
+        return mapping.get(str(level).lower(), "INVALID")
+
     def _provider_name(self, provider: DataProvider) -> str:
         return provider.__class__.__name__
 
@@ -106,6 +122,8 @@ class DataMappingLayer:
             "provider_used": provider_used,
             "fallback_used": fallback_used,
             "confidence_level": cross_validation_result.get("overall_confidence_level", "low"),
+            "confidence_score": self._confidence_score_from_level(cross_validation_result.get("overall_confidence_level", "low")),
+            "validation_status": self._validation_status_from_level(cross_validation_result.get("overall_confidence_level", "low")),
             "cross_validation_result": cross_validation_result,
             "timestamp": self._now(),
             "akshare_summary": akshare_data,
@@ -134,6 +152,8 @@ class DataMappingLayer:
             "order_signals": order_signals,
             "news_signals": news_signals,
             "theme_signals": theme_signals,
+            "confidence_score": financial_summary.get("confidence_score", 0.0),
+            "validation_status": financial_summary.get("validation_status", "INVALID"),
             "name": str(basic.get("name", "UNKNOWN")),
             "theme": str(theme.get("theme", basic.get("industry", "UNKNOWN"))),
             "tau_factor_score": theme.get("tau_factor_score", 0.0),

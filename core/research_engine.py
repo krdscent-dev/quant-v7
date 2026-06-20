@@ -25,6 +25,8 @@ class ResearchDecision:
     strategic_score: float = 0.0
     research_conclusion: str = ""
     risk_summary: str = ""
+    decision_action: str = "WATCH"
+    overall_confidence: float = 1.0
 
 
 class ResearchEngine:
@@ -107,6 +109,46 @@ class ResearchEngine:
             return "当前未见明显结构性风险，但仍需持续跟踪外部验证。"
         return "；".join(risks)
 
+    def _overall_confidence(self, factor_input: Mapping[str, Any]) -> float:
+        financial = factor_input.get("financial_summary", {})
+        if isinstance(financial, Mapping):
+            if "confidence_score" in financial:
+                return self._clamp_0_100(float(financial.get("confidence_score", 0.0))) / 100.0
+            confidence_level = str(financial.get("confidence_level", "")).lower()
+            return {
+                "high": 1.0,
+                "medium": 0.75,
+                "low": 0.35,
+            }.get(confidence_level, 0.0)
+        return 0.0
+
+    def _core_financial_invalid(self, factor_input: Mapping[str, Any]) -> bool:
+        financial = factor_input.get("financial_summary", {})
+        if not isinstance(financial, Mapping):
+            return True
+        cross_validation = financial.get("cross_validation_result", {})
+        field_results = cross_validation.get("field_results", {}) if isinstance(cross_validation, Mapping) else {}
+        if not field_results:
+            return False
+        for item in field_results.values():
+            if isinstance(item, Mapping) and "INVALID" in str(item.get("validation_status", "")):
+                return True
+        return all(
+            isinstance(item, Mapping) and "both_sources_missing" in item.get("conflict_flags", [])
+            for item in field_results.values()
+        )
+
+    def _decision_action(self, strategic_score: float, overall_confidence: float, core_invalid: bool) -> str:
+        if core_invalid:
+            return "AVOID" if strategic_score < 50 else "REVIEW"
+        if overall_confidence < 0.65:
+            return "WATCH"
+        if strategic_score >= 75:
+            return "BUY"
+        if strategic_score >= 60:
+            return "REVIEW"
+        return "WATCH"
+
     def analyze(self, factor_input: Mapping[str, Any]) -> ResearchDecision:
         """Convert FactorInput into a standardized research decision."""
 
@@ -116,11 +158,22 @@ class ResearchEngine:
         catalyst_strength = self._catalyst_strength(factor_input)
         order_confirmation_level = self._order_confirmation_level(factor_input, factor_scores)
         strategic_score = float(strategic_result.strategic_score)
+        overall_confidence = self._overall_confidence(factor_input)
+        core_invalid = self._core_financial_invalid(factor_input)
+        decision_action = self._decision_action(strategic_score, overall_confidence, core_invalid)
+        if overall_confidence < 0.65 and decision_action == "BUY":
+            decision_action = "WATCH"
+        if core_invalid and decision_action == "BUY":
+            decision_action = "REVIEW" if strategic_score >= 50 else "AVOID"
         research_conclusion = self._research_conclusion(
             strategic_score=strategic_score,
             catalyst_strength=catalyst_strength,
             order_level=order_confirmation_level,
         )
+        if decision_action == "WATCH" and overall_confidence < 0.65:
+            research_conclusion = f"{research_conclusion} 由于置信度偏低，决策上限收敛为 WATCH。"
+        if core_invalid:
+            research_conclusion = f"{research_conclusion} 核心财务因子存在无效或缺失信号，建议降级处理。"
         risk_summary = self._risk_summary(factor_input, factor_scores)
 
         return ResearchDecision(
@@ -130,6 +183,8 @@ class ResearchEngine:
             strategic_score=round(strategic_score, 2),
             research_conclusion=research_conclusion,
             risk_summary=risk_summary,
+            decision_action=decision_action,
+            overall_confidence=round(overall_confidence, 2),
         )
 
 
