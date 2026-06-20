@@ -20,6 +20,7 @@ except ImportError as exc:  # pragma: no cover - runtime dependency guard
 
 from core.research_engine import run_research_pipeline
 from core.provider_router import ProviderRouter
+from src.portfolio.portfolio_scoring_engine import PortfolioScoringEngine
 from src.provider_trust.trust_report import format_trust_ranking
 
 
@@ -62,13 +63,31 @@ def build_weekly_report_data() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for record in universe:
         result = run_research_pipeline(record["code"])
+        factor_confidences = result.get("factor_confidences", {})
+        confidence_values = [
+            float(item.get("final_confidence", 0.0))
+            for item in factor_confidences.values()
+            if isinstance(item, dict)
+        ]
+        confidence_score = sum(confidence_values) / len(confidence_values) if confidence_values else 0.0
+        if confidence_score >= 0.75 and float(result["strategic_score"]) >= 75:
+            final_decision = "BUY"
+        elif confidence_score < 0.50:
+            final_decision = "AVOID"
+        elif float(result["strategic_score"]) >= 60:
+            final_decision = "WATCH"
+        else:
+            final_decision = "REVIEW"
         rows.append(
             {
                 "company_code": record["code"],
                 "name": record["name"],
                 "theme": record["theme"],
                 "watch_priority": record["watch_priority"],
+                "period": "TTM",
                 "strategic_score": float(result["strategic_score"]),
+                "confidence_score": confidence_score,
+                "final_decision": final_decision,
                 "catalyst_strength": float(result["catalyst_strength"]),
                 "order_confirmation_level": float(result["order_confirmation_level"]),
                 "risk_summary": str(result["risk_summary"]),
@@ -80,9 +99,29 @@ def build_weekly_report_data() -> list[dict[str, Any]]:
                 "score_explanation": result.get("score_explanation", {}),
                 "decision_explanation": result.get("decision_explanation", {}),
                 "factor_confidences": result.get("factor_confidences", {}),
+                "evidence_refs": result.get("evidence_refs", {}),
             }
         )
     return sorted(rows, key=lambda row: row["strategic_score"], reverse=True)
+
+
+def build_portfolio_snapshot(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    engine = PortfolioScoringEngine()
+    candidates = [
+        {
+            "symbol": row["company_code"],
+            "period": row.get("period", "TTM"),
+            "strategic_score": row["strategic_score"],
+            "confidence_score": row.get("confidence_score", 0.0),
+            "final_decision": row.get("final_decision", "WATCH"),
+            "risk_score": min(1.0, max(0.0, 1.0 - min(float(row["strategic_score"]), 100.0) / 100.0)),
+            "evidence_refs": row.get("evidence_refs", {}),
+            "explanation": row.get("research_conclusion", ""),
+        }
+        for row in rows
+    ]
+    snapshot = engine.build_snapshot(candidates, period="TTM")
+    return engine.snapshot_to_dict(snapshot)
 
 
 def _trust_snapshot() -> list[dict[str, Any]]:
@@ -169,6 +208,11 @@ def _changes_summary(rows: list[dict[str, Any]]) -> tuple[list[str], list[str], 
     return catalyst_changes, order_changes, watchlist_changes
 
 
+def _portfolio_sections(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    snapshot = build_portfolio_snapshot(rows)
+    return snapshot
+
+
 def generate_weekly_report() -> Path:
     """Generate weekly report markdown and companion CSV."""
 
@@ -181,6 +225,7 @@ def generate_weekly_report() -> Path:
     catalyst_changes, order_changes, watchlist_changes = _changes_summary(rows)
     risk_alerts = _risk_alerts(rows)
     top_confidence, low_confidence, confidence_warnings = _confidence_sections(rows)
+    portfolio_snapshot = _portfolio_sections(rows)
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -270,6 +315,39 @@ def generate_weekly_report() -> Path:
     if confidence_warnings:
         lines.extend(confidence_warnings)
     else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 16. Portfolio Snapshot")
+    lines.append(f"- {portfolio_snapshot.get('summary', '')}")
+    lines.append("")
+    lines.append("## 17. Portfolio Ranking")
+    for item in portfolio_snapshot.get("ranked_candidates", [])[:10]:
+        lines.append(
+            f"- {item['rank']}. {item['symbol']} {item['bucket']} total={item['total_score']:.2f} conf={item['confidence_score']:.2f}"
+        )
+    lines.append("")
+    lines.append("## 18. Core Candidates")
+    for item in portfolio_snapshot.get("core_candidates", []):
+        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
+    if not portfolio_snapshot.get("core_candidates"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 19. Satellite Candidates")
+    for item in portfolio_snapshot.get("satellite_candidates", []):
+        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
+    if not portfolio_snapshot.get("satellite_candidates"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 20. Watchlist Candidates")
+    for item in portfolio_snapshot.get("watchlist_candidates", []):
+        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
+    if not portfolio_snapshot.get("watchlist_candidates"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 21. Excluded Candidates")
+    for item in portfolio_snapshot.get("excluded_candidates", []):
+        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
+    if not portfolio_snapshot.get("excluded_candidates"):
         lines.append("- none")
     lines.append("")
 
