@@ -1,4 +1,4 @@
-﻿"""Smoke test for the AkShare real data integration phase 1."""
+﻿"""Smoke test for the AkShare financial mapping fix."""
 
 from __future__ import annotations
 
@@ -27,6 +27,9 @@ def main() -> None:
         basic = provider.get_company_basic_info(code)
         financial = provider.get_financial_summary(code)
         _print_payload(f"company_basic_info[{code}]", basic)
+        _print_payload(f"raw_financial_fields[{code}]", financial.get("raw_financial_fields"))
+        _print_payload(f"mapped_financial_summary[{code}]", financial.get("mapped_financial_summary"))
+        _print_payload(f"missing_fields[{code}]", financial.get("missing_fields"))
         _print_payload(f"financial_summary[{code}]", financial)
 
 
