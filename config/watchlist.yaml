@@ -1,26 +1,278 @@
-﻿# 主题观察名单
-# 后续可按行业、概念、代码和备注继续扩展
+﻿# 量化研究主题观察名单
+#
+# 用途:
+# - 作为主题研究、股票池筛选和因子映射的统一配置入口
+# - 供后续脚本按主题读取观察指标、数据源占位和评分逻辑
+#
+# 说明:
+# - 这里先保留研究口径，不直接写死交易信号
+# - data_sources_placeholder 为占位描述，后续可替换为实际接口、表名或文件路径
+
+version: V7
+market: A股
+theme_count: 7
 
 themes:
-  - name: AI算力
-    keywords:
-      - AI服务器
-      - 算力租赁
-      - 数据中心
-      - 高速互联
-  - name: 华为超节点
-    keywords:
-      - Ascend
-      - 超节点
-      - 昇腾
-      - 鲲鹏
-  - name: 国产替代
-    keywords:
-      - 国产化
-      - 替代
-      - 供应链安全
-      - 自主可控
+  - theme_name: AI算力
+    description: 聚焦AI服务器、数据中心、GPU/加速卡、液冷与高速互联等算力基础设施链条。
+    key_indicators:
+      - 算力装机量
+      - 数据中心上架率
+      - GPU/加速卡出货
+      - 机柜功率密度
+      - 液冷渗透率
+      - 服务器订单增速
+    factor_fields:
+      - capex_growth
+      - datacenter_occupancy
+      - accelerator_shipments
+      - power_density
+      - liquid_cooling_adoption
+      - server_order_momentum
+    data_sources_placeholder:
+      quotes: 行情/成交量/市值
+      fundamentals: 财务报表/经营数据
+      industry: IDC/服务器/云计算行业数据
+      news: 产业新闻与公司公告
+    scoring_logic:
+      base_weights:
+        capex_growth: 0.20
+        datacenter_occupancy: 0.20
+        accelerator_shipments: 0.20
+        power_density: 0.15
+        liquid_cooling_adoption: 0.15
+        server_order_momentum: 0.10
+      rules:
+        - 成长性与订单验证优先
+        - 上架率和装机量高于单纯概念热度
+        - 供电、散热和互联约束作为加分项
+    risk_flags:
+      - 订单兑现不及预期
+      - 算力投资周期回落
+      - 供电与散热瓶颈
 
-notes:
-  - 这里先保存研究主题标签，不直接承载交易信号。
-  - 后续可由脚本自动读取并映射到股票池。
+  - theme_name: 华为昇腾超节点
+    description: 聚焦华为昇腾生态、超节点部署、兼容适配、网络协同与供应链受益标的。
+    key_indicators:
+      - 昇腾相关订单
+      - 超节点部署规模
+      - 生态伙伴数量
+      - 兼容适配进展
+      - 供应链覆盖度
+      - 计算网络协同程度
+    factor_fields:
+      - ascend_orders
+      - supernode_deployment
+      - ecosystem_partners
+      - compatibility_progress
+      - supply_chain_coverage
+      - compute_network_synergy
+    data_sources_placeholder:
+      quotes: 行情/成交量/主题热度
+      fundamentals: 财报/合同/定增/资本开支
+      industry: 昇腾生态/服务器/网络设备资料
+      news: 发布会/合作公告/媒体报道
+    scoring_logic:
+      base_weights:
+        ascend_orders: 0.25
+        supernode_deployment: 0.20
+        ecosystem_partners: 0.15
+        compatibility_progress: 0.15
+        supply_chain_coverage: 0.15
+        compute_network_synergy: 0.10
+      rules:
+        - 以实际订单、交付和部署为核心
+        - 生态扩张和适配进度高于短期情绪
+        - 供应链覆盖度用于识别受益标的
+    risk_flags:
+      - 生态推进节奏不及预期
+      - 单一客户依赖
+      - 概念炒作压制估值有效性
+
+  - theme_name: τ因子
+    description: 聚焦时间衰减、反转、波动结构与量价关系，作为横截面统计因子研究核心。
+    key_indicators:
+      - 价格时间衰减特征
+      - 波动率分层
+      - 反转强度
+      - 量价背离
+      - 趋势持续性
+      - 横截面分位稳定度
+    factor_fields:
+      - tau_score
+      - product_cycle_alignment
+      - supply_chain_confirmation
+      - order_acceleration
+      - media_signal_strength
+    data_sources_placeholder:
+      quotes: 日频行情/复权价格/成交量
+      fundamentals: 可选的估值和财务因子
+      industry: 行业分组/风格分类
+      news: 可选事件过滤
+    scoring_logic:
+      base_weights:
+        tau_score: 0.40
+        product_cycle_alignment: 0.20
+        supply_chain_confirmation: 0.15
+        order_acceleration: 0.15
+        media_signal_strength: 0.10
+      rules:
+        - 优先识别可持续且可复现的统计特征
+        - 反转和衰减特征需与交易成本约束联动评估
+        - 横截面稳定性是核心过滤项
+    risk_flags:
+      - 因子漂移
+      - 样本外失效
+      - 交易成本侵蚀收益
+
+  - theme_name: 国产替代
+    description: 聚焦自主可控、供应链安全、关键零部件和关键软件的国产替代机会。
+    key_indicators:
+      - 国产渗透率
+      - 进口替代进度
+      - 供应链安全等级
+      - 核心产品自给率
+      - 政策支持强度
+      - 客户认证进展
+    factor_fields:
+      - localization_penetration
+      - import_substitution_progress
+      - supply_chain_security
+      - core_product_self_sufficiency
+      - policy_support_strength
+      - customer_certification_stage
+    data_sources_placeholder:
+      quotes: 行情/换手率/估值
+      fundamentals: 财务报表/毛利率/研发费用
+      industry: 产业链图谱/国产化清单
+      news: 政策文件/招投标/客户认证公告
+    scoring_logic:
+      base_weights:
+        localization_penetration: 0.25
+        import_substitution_progress: 0.20
+        supply_chain_security: 0.15
+        core_product_self_sufficiency: 0.15
+        policy_support_strength: 0.15
+        customer_certification_stage: 0.10
+      rules:
+        - 以真实替代进度和客户验证为主
+        - 政策催化只作为辅助项
+        - 供应链安全与关键产品自给率优先
+    risk_flags:
+      - 政策预期落空
+      - 客户认证延迟
+      - 替代节奏低于行业预期
+
+  - theme_name: 玻璃基板
+    description: 聚焦先进封装相关的玻璃基板工艺、试产、良率、设备导入与客户验证。
+    key_indicators:
+      - 试产进度
+      - 良率提升
+      - 材料验证节点
+      - 设备导入情况
+      - 客户导入数量
+      - 产线投资规模
+    factor_fields:
+      - pilot_line_progress
+      - yield_improvement
+      - material_validation_stage
+      - equipment_introduction
+      - customer_adoption_count
+      - production_line_investment
+    data_sources_placeholder:
+      quotes: 行情/资金流/主题热度
+      fundamentals: CAPEX/在建工程/折旧
+      industry: 玻璃材料/封装技术资料
+      news: 试产公告/项目进展/客户验证
+    scoring_logic:
+      base_weights:
+        pilot_line_progress: 0.20
+        yield_improvement: 0.20
+        material_validation_stage: 0.20
+        equipment_introduction: 0.15
+        customer_adoption_count: 0.15
+        production_line_investment: 0.10
+      rules:
+        - 试产、良率和客户验证优先
+        - 产线投资只作为中性偏正信号
+        - 若缺少验证节点，概念分值应明显打折
+    risk_flags:
+      - 工艺验证失败
+      - 良率提升不及预期
+      - 资本开支转化效率偏低
+
+  - theme_name: 人造金刚石
+    description: 聚焦超硬材料、金刚石线、CVD 与热管理等工业应用扩展机会。
+    key_indicators:
+      - 单晶/多晶产能
+      - 金刚石线渗透率
+      - 工业应用扩展
+      - 产品价格走势
+      - 毛利率变化
+      - 设备国产化程度
+    factor_fields:
+      - crystal_capacity
+      - diamond_wire_penetration
+      - industrial_application_expansion
+      - product_price_trend
+      - gross_margin_change
+      - equipment_localization_level
+    data_sources_placeholder:
+      quotes: 行情/成交量/估值
+      fundamentals: 产能/毛利率/库存/订单
+      industry: 超硬材料行业数据
+      news: 扩产公告/行业价格数据/应用落地
+    scoring_logic:
+      base_weights:
+        crystal_capacity: 0.20
+        diamond_wire_penetration: 0.20
+        industrial_application_expansion: 0.15
+        product_price_trend: 0.15
+        gross_margin_change: 0.15
+        equipment_localization_level: 0.15
+      rules:
+        - 产能和应用扩展共同决定趋势强度
+        - 价格与毛利率改善用于确认景气度
+        - 设备国产化带来成本和供应链加分
+    risk_flags:
+      - 价格下行周期
+      - 下游需求波动
+      - 扩产导致供给过剩
+
+  - theme_name: 先进封装
+    description: 聚焦Chiplet、2.5D/3D封装、OSAT、TSV 与工艺成熟度相关机会。
+    key_indicators:
+      - 封装产能利用率
+      - Chiplet导入进展
+      - 2.5D/3D工艺成熟度
+      - 设备和材料配套能力
+      - 客户验证数量
+      - 先进封装收入占比
+    factor_fields:
+      - packaging_capacity_utilization
+      - chiplet_adoption_progress
+      - process_maturity
+      - equipment_material_support
+      - customer_validation_count
+      - advanced_packaging_revenue_share
+    data_sources_placeholder:
+      quotes: 行情/成交量/估值分位
+      fundamentals: 收入结构/产能/资本开支
+      industry: 封装行业报告/工艺路线资料
+      news: 客户导入/产线建设/新品发布
+    scoring_logic:
+      base_weights:
+        packaging_capacity_utilization: 0.20
+        chiplet_adoption_progress: 0.20
+        process_maturity: 0.15
+        equipment_material_support: 0.15
+        customer_validation_count: 0.15
+        advanced_packaging_revenue_share: 0.15
+      rules:
+        - 产能利用率和工艺成熟度是主线
+        - 客户验证与收入占比用于确认商业化进度
+        - 材料和设备配套能力用于判断壁垒
+    risk_flags:
+      - 工艺爬坡慢于预期
+      - 客户导入延迟
+      - 资本开支回报周期过长
