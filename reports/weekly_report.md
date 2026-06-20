@@ -173,7 +173,7 @@
   - AVOID
 
 ## 43. Workflow Summary
-- Workflow f23357d3d8ea4bf28fac5d7c3afa3466 completed with 17 successful steps, 0 failed steps and 0 skipped steps.
+- Workflow 773ca4e9cd4146f5883d01c8603bc38c completed with 17 successful steps, 0 failed steps and 0 skipped steps.
 
 ## 44. Workflow Status
 - SUCCESS
@@ -183,3 +183,11 @@
 
 ## 46. Workflow Errors
 - none
+
+## 47. Quality Report
+- rc1_ready: True
+- passed_count: 8
+- failed_count: 0
+
+## 48. RC1 Status
+- READY

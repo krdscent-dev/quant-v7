@@ -37,6 +37,9 @@ from src.risk.risk_management_engine import RiskManagementEngine
 from src.provider_trust.trust_report import format_trust_ranking
 
 
+WEEKLY_REPORT_LAYOUT_VERSION = 2
+
+
 @dataclass(frozen=True)
 class WeeklyReportRow:
     company_code: str
@@ -415,6 +418,32 @@ def _workflow_sections(
     }
 
 
+def _quality_sections() -> dict[str, Any]:
+    from src.quality.quality_gate import QualityGate
+
+    report = QualityGate().run()
+    checks = [
+        {
+            "check_name": item.check_name,
+            "status": item.status,
+            "message": item.message,
+            "severity": item.severity,
+        }
+        for item in report.checks
+    ]
+    return {
+        "quality_report": {
+            "timestamp": report.timestamp,
+            "checks": checks,
+            "passed_count": report.passed_count,
+            "failed_count": report.failed_count,
+            "warnings": list(report.warnings),
+            "rc1_ready": report.rc1_ready,
+        },
+        "rc1_status": "READY" if report.rc1_ready else "NOT_READY",
+    }
+
+
 def _generate_weekly_report(base_dir: Path) -> Path:
     rows = build_weekly_report_data()
     trust_scores = _trust_snapshot()
@@ -431,6 +460,7 @@ def _generate_weekly_report(base_dir: Path) -> Path:
     backtest_report, backtest_payload = _backtest_sections(rows, portfolio_snapshot, position_snapshot, rebalance_plan)
     kb_sections = _knowledge_base_sections(rows)
     workflow_sections = _workflow_sections(rows, portfolio_snapshot, position_snapshot, risk_report, rebalance_plan, backtest_payload)
+    quality_sections = _quality_sections()
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -705,20 +735,29 @@ def _generate_weekly_report(base_dir: Path) -> Path:
     else:
         lines.append("- none")
     lines.append("")
+    lines.append("## 47. Quality Report")
+    quality_report = quality_sections["quality_report"]
+    lines.append(f"- rc1_ready: {quality_report['rc1_ready']}")
+    lines.append(f"- passed_count: {quality_report['passed_count']}")
+    lines.append(f"- failed_count: {quality_report['failed_count']}")
+    lines.append("")
+    lines.append("## 48. RC1 Status")
+    lines.append(f"- {quality_sections['rc1_status']}")
+    lines.append("")
 
     output_path = base_dir / "reports" / "weekly_report.md"
     output_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     return output_path
 
 
-_WEEKLY_REPORT_CACHE: dict[int, Path] = {}
+_WEEKLY_REPORT_CACHE: dict[tuple[int, int], Path] = {}
 
 
 def generate_weekly_report() -> Path:
     """Generate weekly report markdown and companion CSV."""
 
     base_dir = Path(__file__).resolve().parents[1]
-    cache_key = DEFAULT_KB_STORE.kb.version
+    cache_key = (DEFAULT_KB_STORE.kb.version, WEEKLY_REPORT_LAYOUT_VERSION)
     cached = _WEEKLY_REPORT_CACHE.get(cache_key)
     if cached is not None and cached.exists():
         return cached
