@@ -149,3 +149,28 @@
 - 002156.SZ 12.05
 - 600584.SH 12.05
 - 002185.SZ 12.05
+
+## 22. Position Snapshot
+- Core Allocation: 0% Satellite Allocation: 0% Cash: 100.0%
+
+## 23. Recommended Positions
+- 000977.SZ EXCLUDED 0.0%
+- 300308.SZ EXCLUDED 0.0%
+- 002230.SZ EXCLUDED 0.0%
+- 603595.SH EXCLUDED 0.0%
+- 000034.SZ EXCLUDED 0.0%
+- 600588.SH EXCLUDED 0.0%
+- 688041.SH EXCLUDED 0.0%
+- 002371.SZ EXCLUDED 0.0%
+- 000938.SZ EXCLUDED 0.0%
+- 600460.SH EXCLUDED 0.0%
+
+## 24. Top Allocations
+- 000977.SZ 0.0%
+- 300308.SZ 0.0%
+- 002230.SZ 0.0%
+- 603595.SH 0.0%
+- 000034.SZ 0.0%
+
+## 25. Cash Remaining
+- 100.0%

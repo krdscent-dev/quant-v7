@@ -21,6 +21,7 @@ except ImportError as exc:  # pragma: no cover - runtime dependency guard
 from core.research_engine import run_research_pipeline
 from core.provider_router import ProviderRouter
 from src.portfolio.portfolio_scoring_engine import PortfolioScoringEngine
+from src.position.position_sizing_engine import PositionSizingEngine
 from src.provider_trust.trust_report import format_trust_ranking
 
 
@@ -213,6 +214,24 @@ def _portfolio_sections(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return snapshot
 
 
+def _position_sections(portfolio_snapshot: dict[str, Any]) -> dict[str, Any]:
+    engine = PositionSizingEngine()
+    candidates = []
+    for item in portfolio_snapshot.get("ranked_candidates", [])[:10]:
+        candidates.append(
+            {
+                "symbol": item.get("symbol", "UNKNOWN"),
+                "bucket": item.get("bucket", "WATCHLIST"),
+                "strategic_score": item.get("strategic_score", 0.0),
+                "confidence_score": item.get("confidence_score", 0.0),
+                "risk_score": min(1.0, max(0.0, 1.0 - float(item.get("total_score", 0.0)) / 100.0)),
+                "evidence_refs": {},
+            }
+        )
+    snapshot = engine.build_snapshot(candidates, period="TTM")
+    return engine.snapshot_to_dict(snapshot)
+
+
 def generate_weekly_report() -> Path:
     """Generate weekly report markdown and companion CSV."""
 
@@ -226,6 +245,7 @@ def generate_weekly_report() -> Path:
     risk_alerts = _risk_alerts(rows)
     top_confidence, low_confidence, confidence_warnings = _confidence_sections(rows)
     portfolio_snapshot = _portfolio_sections(rows)
+    position_snapshot = _position_sections(portfolio_snapshot)
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
@@ -349,6 +369,27 @@ def generate_weekly_report() -> Path:
         lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
     if not portfolio_snapshot.get("excluded_candidates"):
         lines.append("- none")
+    lines.append("")
+    lines.append("## 22. Position Snapshot")
+    lines.append(f"- {position_snapshot.get('allocation_summary', '')}")
+    lines.append("")
+    lines.append("## 23. Recommended Positions")
+    for item in position_snapshot.get("recommendations", [])[:10]:
+        lines.append(
+            f"- {item['symbol']} {item['bucket']} {item['recommended_weight'] * 100:.1f}%"
+        )
+    if not position_snapshot.get("recommendations"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 24. Top Allocations")
+    top_allocations = sorted(position_snapshot.get("recommendations", []), key=lambda item: item.get("recommended_weight", 0.0), reverse=True)[:5]
+    for item in top_allocations:
+        lines.append(f"- {item['symbol']} {item['recommended_weight'] * 100:.1f}%")
+    if not top_allocations:
+        lines.append("- none")
+    lines.append("")
+    lines.append("## 25. Cash Remaining")
+    lines.append(f"- {position_snapshot.get('remaining_cash', 0.0) * 100:.1f}%")
     lines.append("")
 
     output_path = base_dir / "reports" / "weekly_report.md"
