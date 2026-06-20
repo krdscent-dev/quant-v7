@@ -1,57 +1,57 @@
-# 研究工作流
+﻿# Research Workflow
 
-本文件定义 V7 研究引擎的标准工作流，覆盖周度、月度和季度三个层级。
+This document defines the standard research workflow for the V8 engine.
 
-## 每周研究流程
+## Weekly Pipeline
 
-1. 更新主题 watchlist
-2. 收集本周催化剂与风险事件
-3. 记录关键公司变化
-4. 汇总观察信号变化
-5. 输出周报到 `reports/`
+The weekly pipeline is the default operating loop for research review.
 
-周度输出重点：
-- 本周观察重点
-- 潜在催化剂
-- 风险提示
-- 因子变化记录
+Flow:
 
-## 每月复盘流程
+`Universe -> Research Pipeline -> ResearchDecision -> Weekly Report`
 
-1. 回看当月主题表现
-2. 检查主题信号是否兑现
-3. 对比月初假设与实际变化
-4. 复核样例标的池和权重配置
-5. 归档月度研究结论
+Steps:
 
-月度复盘关注：
-- 主题强弱切换
-- 因子有效性变化
-- 样例公司基本面跟踪
-- 回测排序稳定性
+1. load the core universe
+2. run the integrated research pipeline for each company
+3. collect `ResearchDecision` outputs
+4. rank by `Strategic Score`
+5. generate the weekly markdown report
 
-## 季度验证流程
+Weekly outputs focus on:
 
-1. 验证季度级别的核心假设
-2. 检查关键公司订单、收入和产能变化
-3. 复核行业景气度和政策环境
-4. 检查因子在更长窗口上的稳定性
-5. 判断是否需要调整主题权重或评分逻辑
+- this week's key themes
+- Strategic Score Top10
+- catalyst changes
+- order confirmation changes
+- risk alerts
+- watchlist changes
+- research conclusions
 
-季度验证关注：
-- 主题 thesis 是否成立
-- catalysts 是否兑现
-- risk_flags 是否被触发
-- scoring_rules 是否需要重写
+## Monthly Review
 
-## 输出约定
+Monthly review should compare theme strength, factor stability, and
+watchlist rotation across the month.
 
-- YAML 主题文件放在 `data/watchlists/`
-- 周报与复盘模板放在 `reports/`
-- 工作流文档放在 `docs/`
+## Quarterly Review
 
-## 编码约定
+Quarterly review should validate whether the theme thesis still holds,
+whether orders are converting, and whether strategic scores need to be
+reweighted.
 
-- YAML 使用 `utf-8`
-- Markdown 使用 `utf-8`
-- CSV 输出继续使用 `utf-8-sig`
+## Operating Principle
+
+`ResearchDecision` is the only input used by reporting layers.
+Reports must not depend directly on providers.
+
+## Output Rules
+
+- YAML theme files stay in `data/watchlists/`
+- report artifacts stay in `reports/`
+- workflow documentation stays in `docs/`
+
+## Encoding Rules
+
+- YAML uses `utf-8`
+- Markdown uses `utf-8`
+- CSV outputs continue to use `utf-8-sig`
