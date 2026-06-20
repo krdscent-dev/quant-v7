@@ -1,0 +1,32 @@
+providers:
+  tushare:
+    priority: 1
+    enabled: true
+
+  akshare:
+    priority: 2
+    enabled: true
+
+  mock:
+    priority: 99
+    enabled: true
+
+field_mapping:
+  financial_summary:
+    preferred_provider: tushare
+
+  company_basic_info:
+    preferred_provider: akshare
+
+  news_signals:
+    preferred_provider: akshare
+
+  theme_signals:
+    preferred_provider: akshare
+
+  order_signals:
+    preferred_provider: tushare
+
+conflict_resolution:
+  strategy: priority_based
+

@@ -20,9 +20,10 @@ signals, news signals, and theme signals.
 
 Current state:
 
-- Mock Data only
-- No external API integration required
-- Unified provider interface for future AkShare / Tushare adapters
+- MockDataProvider is available now
+- AkShare adapter is available as a parallel source layer
+- Tushare adapter is available as a parallel source layer
+- No external API integration is required for the research engine to run
 
 ### Factor layer
 
@@ -60,18 +61,35 @@ All providers must inherit from `DataProvider` and implement:
 - `get_news_signals()`
 - `get_theme_signals()`
 
-## 4. AkShare Adapter
+## 4. Adapter Layers
+
+The source layer currently has three parallel provider options:
+
+- `MockDataProvider` for deterministic local research runs
+- `AkShareDataProvider` for future A-share market data integration
+- `TushareDataProvider` for future financial and market data integration
+
+All three providers implement the same `DataProvider` contract so
+downstream factor and scoring modules stay source-agnostic.
+
+## 5. AkShare Adapter
 
 `data_sources/akshare_provider.py` is a thin adapter that may return
 placeholder payloads when AkShare is not installed. It is designed to
 stay source-side only and should not contain factor logic.
 
-## 5. Future Extension
+## 6. Tushare Adapter
+
+`data_sources/tushare_provider.py` mirrors the AkShare adapter
+structure. It is also a thin adapter only, and may return placeholder
+payloads when Tushare is not installed.
+
+## 7. Future Extension
 
 Planned future adapters:
 
-- AkShare provider
-- Tushare provider
+- more AkShare field mappings
+- more Tushare field mappings
 - file-based provider
 - database-backed provider
 
