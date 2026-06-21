@@ -26,9 +26,9 @@ from core.v10_version_control import V10VersionControl
 from core.v10_weekly_report import load_or_build_rankings
 from core.v11_agents import V11AgentOrchestrator
 from market.cycle_engine import CycleEngine
-from market.narrative_engine import NarrativeEngine
 from market.v12_1_structure_engine import analyze_market_structure
 from market.v12_2_capital_flow_engine import V122CapitalFlowEngine
+from market.v12_3_narrative_engine import V123NarrativeEngine
 
 
 class _V12RegimeAdapter:
@@ -174,7 +174,11 @@ def main() -> None:
     )
     capital_flows = capital_flow_analysis.ranked_flows
     flow_by_sector = {item.sector: item for item in capital_flows}
-    narrative = NarrativeEngine().extract(capital_flows, ranked)
+    narrative = V123NarrativeEngine().extract_market_theme(
+        sector_data=sector_engine.sector_scores,
+        capital_flow_data=capital_flow_analysis,
+        market_structure=market_structure,
+    )
     cycle_state = CycleEngine().detect(market_structure)
     regime_result = _V12RegimeAdapter(market_structure, legacy_regime_result)
 
@@ -182,7 +186,10 @@ def main() -> None:
     print(f"market_regime\t{market_structure.regime}\ttrend={market_structure.trend_score:.2f}\tvolatility={market_structure.volatility:.2f}\tmomentum={market_structure.price_momentum:.2f}\tvolatility_state={market_structure.volatility_state}\tstructure_strength={market_structure.structure_strength:.2f}\tconfidence={market_structure.confidence:.2f}")
     print(f"market_reason\t{market_structure.reason}")
     print(f"dominant_narrative\t{narrative.dominant_narrative}")
+    print(f"narrative_strength\t{narrative.narrative_strength:.2f}")
+    print(f"narrative_phase\t{narrative.narrative_phase}")
     print(f"narrative_consistency\t{narrative.consistency}")
+    print(f"active_narratives\t{', '.join(item.narrative for item in narrative.active_narratives)}")
     print(f"cycle_state\tmacro={cycle_state.macro_cycle}\tliquidity={cycle_state.liquidity_cycle}\trisk_appetite={cycle_state.risk_appetite}")
     print(f"flow_strength\t{capital_flow_analysis.flow_strength}")
     print(f"leader_concentration\t{capital_flow_analysis.leader_concentration:.2f}")
@@ -236,6 +243,9 @@ def main() -> None:
                 "confidence_bias": learning_context.get("confidence_bias", 0.0),
                 "confidence_sensitivity": learning_context.get("confidence_sensitivity", 1.0),
                 "dominant_narrative": narrative.dominant_narrative,
+                "active_narratives": [item.narrative for item in narrative.active_narratives],
+                "narrative_strength": narrative.narrative_strength,
+                "narrative_phase": narrative.narrative_phase,
                 "narrative_consistency": narrative.consistency,
                 "supporting_themes": narrative.supporting_themes,
                 "macro_cycle": cycle_state.macro_cycle,
@@ -250,6 +260,9 @@ def main() -> None:
         )
         decision["score"] = round(float(getattr(item, "strategic_score", 0.0)), 2)
         decision["dominant_narrative"] = narrative.dominant_narrative
+        decision["active_narratives"] = [item.narrative for item in narrative.active_narratives]
+        decision["narrative_strength"] = narrative.narrative_strength
+        decision["narrative_phase"] = narrative.narrative_phase
         decision["narrative_consistency"] = narrative.consistency
         decision["supporting_themes"] = narrative.supporting_themes
         decision["macro_cycle"] = cycle_state.macro_cycle
@@ -304,7 +317,7 @@ def main() -> None:
     post_snapshot = version_control.snapshot("post_execution")
     audit_summary = audit_engine.summary()
 
-    print("symbol\talpha_score\trisk_score\tmarket_regime\tdominant_narrative\tcycle_state\tsector\tsector_strength\tcapital_flow_score\tflow_direction\tleader_concentration\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tactive_agents\tremoved_agents\tnewly_created_agents\tpromoted_agents\tagent_performance_scores\tstructural_changes\tagent_performance_summary\tarbitration_reason\taudit_trail")
+    print("symbol\talpha_score\trisk_score\tmarket_regime\tdominant_narrative\tnarrative_strength\tnarrative_phase\tcycle_state\tsector\tsector_strength\tcapital_flow_score\tflow_direction\tleader_concentration\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tactive_agents\tremoved_agents\tnewly_created_agents\tpromoted_agents\tagent_performance_scores\tstructural_changes\tagent_performance_summary\tarbitration_reason\taudit_trail")
     for decision in v11_decisions:
         sector_payload = decision["sector_context"]
         market_payload = decision["market_intelligence"]
@@ -314,6 +327,8 @@ def main() -> None:
             f"{decision['risk_score']:.2f}\t"
             f"{decision['macro_regime']}\t"
             f"{market_payload['dominant_narrative']}\t"
+            f"{float(market_payload['narrative_strength']):.2f}\t"
+            f"{market_payload['narrative_phase']}\t"
             f"{market_payload['macro_cycle']}/{market_payload['liquidity_cycle']}/{market_payload['risk_appetite']}\t"
             f"{sector_payload['sector']}\t"
             f"{sector_payload['sector_strength']:.2f}\t"

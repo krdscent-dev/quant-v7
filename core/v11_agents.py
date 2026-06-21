@@ -230,6 +230,9 @@ class V11AgentOrchestrator:
             "macro_regime": macro.payload["macro_regime"],
             "market_intelligence": {
                 "dominant_narrative": decision.get("dominant_narrative", "UNKNOWN"),
+                "active_narratives": decision.get("active_narratives", []),
+                "narrative_strength": decision.get("narrative_strength", 0.0),
+                "narrative_phase": decision.get("narrative_phase", "UNKNOWN"),
                 "narrative_consistency": decision.get("narrative_consistency", "UNKNOWN"),
                 "macro_cycle": decision.get("macro_cycle", "UNKNOWN"),
                 "liquidity_cycle": decision.get("liquidity_cycle", "UNKNOWN"),

@@ -1,0 +1,147 @@
+{
+  "version_id": "v10_20260621_125555_842954_pre_governance",
+  "created_at": "2026-06-21T12:55:55.847543",
+  "label": "pre_governance",
+  "state_path": "C:\\Users\\Akon\\OneDrive\\文档\\OneDrive\\桌面\\新建文件夹\\AI_Workspace\\理财投资\\reports\\cache\\v10_learning_state.json",
+  "state": {
+    "factor_weights": {
+      "tau_factor_score": 0.1611,
+      "supernode_score": 0.1923,
+      "domestic_substitution_score": 0.1611,
+      "advanced_packaging_score": 0.1352,
+      "order_confirmation_score": 0.2671,
+      "advanced_material_score": 0.0832
+    },
+    "confidence_bias": 0.2,
+    "confidence_sensitivity": 1.3200000000000003,
+    "model_bias": {
+      "dominant_factor": "order_confirmation_score",
+      "weakest_factor": "advanced_material_score",
+      "confidence_bias": "underconfidence_bias_detected",
+      "factor_concentration_bias": "normal"
+    },
+    "last_updates": [
+      {
+        "factor": "supernode_score",
+        "before": 0.1866,
+        "after": 0.1916,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.2817,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "supernode_score",
+        "before": 0.1916,
+        "after": 0.1966,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "supernode_score",
+        "before": 0.1966,
+        "after": 0.2016,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "domestic_substitution_score",
+        "before": 0.1589,
+        "after": 0.1639,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "domestic_substitution_score",
+        "before": 0.1639,
+        "after": 0.1689,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "advanced_packaging_score",
+        "before": 0.1317,
+        "after": 0.1367,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "advanced_packaging_score",
+        "before": 0.1367,
+        "after": 0.1417,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "tau_factor_score",
+        "before": 0.1589,
+        "after": 0.1639,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "tau_factor_score",
+        "before": 0.1639,
+        "after": 0.1689,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "order_confirmation_score",
+        "before": 0.28,
+        "after": 0.28,
+        "outcome": "WIN"
+      },
+      {
+        "factor": "advanced_material_score",
+        "before": 0.0822,
+        "after": 0.0872,
+        "outcome": "WIN"
+      }
+    ],
+    "updated_at": "2026-06-21T11:25:54.775312"
+  }
+}
