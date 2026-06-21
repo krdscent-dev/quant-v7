@@ -13,13 +13,16 @@ from pathlib import Path
 
 from core.execution_engine import ExecutionEngine
 from core.human_approval_engine import HumanApprovalEngine
+from core.v10_audit_engine import V10AuditEngine
 from core.v10_cognitive_graph import V10CognitiveGraph
 from core.decision_engine import DecisionEngine
 from core.regime_engine import RegimeEngine
+from core.v10_governance import V10Governance
 from core.v10_portfolio_autopilot import V10PortfolioAutopilot
 from core.v10_proposal_engine import V10ProposalEngine
 from core.v10_self_learning_engine import V10SelfLearningEngine
 from core.v10_sector_engine import V10SectorEngine
+from core.v10_version_control import V10VersionControl
 from core.v10_weekly_report import load_or_build_rankings
 
 
@@ -57,7 +60,16 @@ def main() -> None:
     self_learning_engine = V10SelfLearningEngine(base_dir / "reports" / "cache" / "v10_learning_state.json")
     proposal_engine = V10ProposalEngine()
     approval_engine = HumanApprovalEngine()
-    execution_engine = ExecutionEngine(base_dir / "reports" / "cache" / "v10_learning_state.json")
+    audit_engine = V10AuditEngine(base_dir / "reports" / "audit" / "v10_audit_log.jsonl")
+    governance = V10Governance()
+    version_control = V10VersionControl(
+        base_dir / "reports" / "cache" / "v10_learning_state.json",
+        base_dir / "reports" / "versions",
+    )
+    execution_engine = ExecutionEngine(
+        base_dir / "reports" / "cache" / "v10_learning_state.json",
+        audit_engine=audit_engine,
+    )
     learning_context = self_learning_engine.adaptive_context()
     sector_engine = V10SectorEngine.from_results(ranked)
     cognitive_graph = V10CognitiveGraph()
@@ -115,6 +127,7 @@ def main() -> None:
 
     final_decisions = portfolio_autopilot.apply_constraints(raw_decisions)
     performance_log = self_learning_engine.evaluate_decision(final_decisions)
+    pre_snapshot = version_control.snapshot("pre_governance")
     proposals = proposal_engine.generate_proposals(
         performance_log,
         {
@@ -124,7 +137,31 @@ def main() -> None:
         },
     )
     reviewed_proposals = approval_engine.review(proposals, approvals={})
-    execution_result = execution_engine.apply_approved(reviewed_proposals)
+    governance_result = governance.validate(reviewed_proposals)
+    audit_engine.log_event(
+        "PROPOSALS_GENERATED",
+        {"count": len(proposals), "symbols": [item.get("symbol") for item in performance_log[:10]]},
+    )
+    audit_engine.log_event(
+        "HUMAN_REVIEW_COMPLETED",
+        {
+            "approved": sum(1 for item in reviewed_proposals if item.status == "APPROVED"),
+            "rejected": sum(1 for item in reviewed_proposals if item.status == "REJECTED"),
+        },
+    )
+    audit_engine.log_event(
+        "GOVERNANCE_VALIDATED",
+        {
+            "valid": len(governance_result.valid_proposals),
+            "rejected": len(governance_result.rejected_proposals),
+            "warnings": governance_result.warnings[:10],
+            "errors": governance_result.errors[:10],
+        },
+        severity="WARNING" if governance_result.errors else "INFO",
+    )
+    execution_result = execution_engine.apply_approved(governance_result.valid_proposals)
+    post_snapshot = version_control.snapshot("post_execution")
+    audit_summary = audit_engine.summary()
 
     print("symbol\tsector\taction\tconfidence\tportfolio_exposure\trisk_score\tcausal_chain\tbottleneck_node\treason")
     for decision in final_decisions:
@@ -146,6 +183,12 @@ def main() -> None:
     print(f"approved_proposals\t{execution_result['applied_count']}")
     print(f"state_changed\t{execution_result['state_changed']}")
     print(f"model_bias\t{execution_result['model_bias_detection']}")
+    print(f"governance_valid\t{len(governance_result.valid_proposals)}")
+    print(f"governance_rejected\t{len(governance_result.rejected_proposals)}")
+    print(f"pre_snapshot\t{pre_snapshot['version_id']}")
+    print(f"post_snapshot\t{post_snapshot['version_id']}")
+    print(f"audit_events\t{audit_summary['total_recent_events']}")
+    print(f"risk_events\t{len(audit_summary['risk_events'])}")
     print("proposal_preview")
     for proposal in proposals[:10]:
         print(

@@ -20,9 +20,11 @@ from core.v10_cognitive_graph import V10CognitiveGraph
 from core.decision_engine import DecisionEngine
 from core.regime_engine import RegimeEngine, RegimeResult
 from core.human_approval_engine import HumanApprovalEngine
+from core.v10_audit_engine import V10AuditEngine
 from core.v10_proposal_engine import V10ProposalEngine
 from core.v10_self_learning_engine import V10SelfLearningEngine
 from core.v10_sector_engine import V10SectorEngine
+from core.v10_version_control import V10VersionControl
 from strategy.strategic_score_engine import StrategicScoreResult, build_rankings
 
 
@@ -290,6 +292,11 @@ def generate_v10_decision_audit_report(base_dir: Path | None = None) -> Path:
         },
     )
     reviewed_proposals = HumanApprovalEngine().review(proposals, approvals={})
+    audit_summary = V10AuditEngine(root / "reports" / "audit" / "v10_audit_log.jsonl").summary()
+    snapshots = V10VersionControl(
+        root / "reports" / "cache" / "v10_learning_state.json",
+        root / "reports" / "versions",
+    ).list_snapshots()
 
     action_counts = Counter(row.action for row in rows)
     validation_no = [row for row in rows if row.regime_validation == "NO"]
@@ -414,6 +421,34 @@ def generate_v10_decision_audit_report(base_dir: Path | None = None) -> Path:
     lines.append("### Confidence Calibration State")
     lines.append(f"- confidence_bias: {float(learning_context.get('confidence_bias', 0.0)):.4f}")
     lines.append(f"- confidence_sensitivity: {float(learning_context.get('confidence_sensitivity', 1.0)):.4f}")
+    lines.append("")
+    lines.append("## 8. AUDIT & GOVERNANCE SUMMARY")
+    lines.append("### Audit Summary")
+    lines.append(f"- recent audit events: {audit_summary.get('total_recent_events', 0)}")
+    lines.append(f"- event counts: {audit_summary.get('event_counts', {})}")
+    lines.append("")
+    lines.append("### Version Changes")
+    if snapshots:
+        lines.append("| version_id | label | created_at |")
+        lines.append("|---|---|---|")
+        for snapshot in snapshots[-10:]:
+            lines.append(
+                f"| {snapshot.get('version_id')} | {snapshot.get('label')} | {snapshot.get('created_at')} |"
+            )
+    else:
+        lines.append("- No version snapshots found.")
+    lines.append("")
+    lines.append("### Top Modifications")
+    lines.append("- No approved modifications were applied in unattended mode.")
+    lines.append("- Pending proposals require explicit human approval before execution.")
+    lines.append("")
+    lines.append("### Risk Events")
+    risk_events = audit_summary.get("risk_events", [])
+    if risk_events:
+        for event in risk_events[:10]:
+            lines.append(f"- {event.get('event_type')}: {event.get('payload')}")
+    else:
+        lines.append("- No audit risk events in recent logs.")
 
     output_dir = root / "reports" / "weekly"
     output_dir.mkdir(parents=True, exist_ok=True)

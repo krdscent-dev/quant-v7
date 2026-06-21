@@ -152,26 +152,26 @@
 ### Pending Proposal Preview
 | proposal_id | type | target | current | proposed | status | reason |
 |---|---|---|---:|---:|---|---|
-| prop_dc1dc8f33ccc4465b97ce0ea5f5abdfa | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_72fee414ca0f479caf20cd77b49fbd97 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_2698c8df94074b5382308ef938026de2 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_7d52a893b10c441395bafdbe45085ca8 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_9cfdf7a5b1ab44cd8b401adbf7f2870f | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_3f83a7e8b7dd4e70990e43662b60b030 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_c7de359e436643ed96aa1680905643d9 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_a49a9bf15f0141cc93864de1db8d1b21 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_010b6be128a9441abdd8fc94738ecd95 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_dc4b1a9c9e9442a08c8a635cb64c9f92 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_8082c0ff74d34ae29fe1be9f552ce687 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_91172963803f428b988b2c9045856a84 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_8dfa27a7a2a74deda7c5970e39dfcb27 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_e0f06b3e23084d7688538c234cec43b9 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_f57509b89b9b4c8eba28489334406fe0 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_bd71554ca87d48b58cee8e772854f3e5 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_a0832cd2c32c4d249548b973dfc1746f | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_b58bbac16ee144d29418c0bf200bcf67 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_3d7fe418a04b4639983829fc9dbf7a67 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_c0ff299276134e71a05319121fffc412 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_f8da934753194b90a14b369c92833a33 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_e9f5bae5982a4448b3238ded8505aa85 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_74c89e2beb364f5aab6b622f575a5085 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_f8748ee4e91e4ab58e842580c8177435 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_eeb07b355a3349c9a4cad55b921ad9ff | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_ed11b1beaa4d4f38b2824424e9cfb089 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_af2260fb1322432288cec44afd867776 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_9038edd1067f47db84ce09e2c6183e63 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_3d44ca903e934a96965732616f0c6b89 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_ac2746cb02644cc4b41d149fb1b7e0d6 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_4af4128d7d2d4eef99e497062461e454 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_8aa37ace14f4482786010e287e2910ac | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_f0c2be89f88c4dd3b0f7ff8bc17dfa56 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_774fcfe68b594f11a6e400ad18b0279d | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_964209fe03864c1cb77e85c2072b7bc3 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_b91c9f605c9e4a96aee8e26b4ec88e1b | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_026cd529c61c4fdf81e808fcb86fa1a9 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_66eaea7df70049729ed05a16058d02af | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_959ff52595f248dfa100cab8b77a421f | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_7590e8775aa3492789276612adc909ce | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
 
 ### Model Bias Detection
 - dominant_factor: order_confirmation_score
@@ -182,3 +182,21 @@
 ### Confidence Calibration State
 - confidence_bias: 0.2000
 - confidence_sensitivity: 1.3200
+
+## 8. AUDIT & GOVERNANCE SUMMARY
+### Audit Summary
+- recent audit events: 4
+- event counts: {'PROPOSALS_GENERATED': 1, 'HUMAN_REVIEW_COMPLETED': 1, 'GOVERNANCE_VALIDATED': 1, 'EXECUTION_SKIPPED': 1}
+
+### Version Changes
+| version_id | label | created_at |
+|---|---|---|
+| v10_20260621_114541_802055_pre_governance | pre_governance | 2026-06-21T11:45:41.802500 |
+| v10_20260621_114541_807630_post_execution | post_execution | 2026-06-21T11:45:41.808026 |
+
+### Top Modifications
+- No approved modifications were applied in unattended mode.
+- Pending proposals require explicit human approval before execution.
+
+### Risk Events
+- No audit risk events in recent logs.

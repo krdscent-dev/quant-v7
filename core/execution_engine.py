@@ -8,20 +8,29 @@ from typing import Any, Iterable
 import json
 
 from core.proposal_schema import Proposal
+from core.v10_audit_engine import V10AuditEngine
+from core.v10_change_tracker import V10ChangeTracker
 from core.v10_self_learning_engine import V10SelfLearningEngine
 
 
 class ExecutionEngine:
     """Apply approved proposals to learning state."""
 
-    def __init__(self, state_path: Path | None = None) -> None:
+    def __init__(self, state_path: Path | None = None, audit_engine: V10AuditEngine | None = None) -> None:
         self.learning_engine = V10SelfLearningEngine(state_path)
+        self.audit_engine = audit_engine
+        self.change_tracker = V10ChangeTracker()
 
     def apply_approved(self, proposals: Iterable[Proposal]) -> dict[str, Any]:
         """Apply only APPROVED proposals. Rejected/pending proposals are ignored."""
 
         approved = [proposal for proposal in proposals if proposal.status == "APPROVED"]
         if not approved:
+            if self.audit_engine:
+                self.audit_engine.log_event(
+                    "EXECUTION_SKIPPED",
+                    {"reason": "no_approved_proposals", "approved_count": 0},
+                )
             return {
                 "applied_count": 0,
                 "applied_updates": [],
@@ -58,9 +67,24 @@ class ExecutionEngine:
         state.last_updates = updates[-20:]
         state.updated_at = datetime.now().isoformat()
         self._save_state()
+        change_records = self.change_tracker.from_execution_updates(updates)
+        if self.audit_engine:
+            for record in change_records:
+                self.audit_engine.log_event(
+                    "SYSTEM_CHANGE_APPLIED",
+                    {
+                        "change_id": record.change_id,
+                        "target": record.target,
+                        "before": record.before,
+                        "after": record.after,
+                        "proposal_id": record.proposal_id,
+                        "reason": record.reason,
+                    },
+                )
         return {
             "applied_count": len(updates),
             "applied_updates": updates,
+            "change_records": [record.__dict__ for record in change_records],
             "state_changed": bool(updates),
             "model_bias_detection": state.model_bias,
         }
