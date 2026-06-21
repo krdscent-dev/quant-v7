@@ -1,0 +1,27 @@
+{
+  "factor_weights": {
+    "tau_factor_score": 0.21,
+    "supernode_score": 0.1899,
+    "domestic_substitution_score": 0.2,
+    "advanced_packaging_score": 0.15,
+    "order_confirmation_score": 0.15,
+    "advanced_material_score": 0.1
+  },
+  "confidence_bias": 0.0,
+  "confidence_sensitivity": 1.0,
+  "model_bias": {
+    "dominant_factor": "tau_factor_score",
+    "weakest_factor": "advanced_material_score",
+    "confidence_bias": "neutral",
+    "factor_concentration_bias": "normal"
+  },
+  "last_updates": [
+    {
+      "factor": "supernode_score",
+      "before": 0.198,
+      "after": 0.188,
+      "outcome": "LOSS"
+    }
+  ],
+  "updated_at": "2026-06-21T11:22:04.199826"
+}

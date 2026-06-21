@@ -8,10 +8,19 @@ from __future__ import annotations
 
 from statistics import mean
 from typing import Any
+import os
+from pathlib import Path
 
+from core.execution_engine import ExecutionEngine
+from core.human_approval_engine import HumanApprovalEngine
+from core.v10_cognitive_graph import V10CognitiveGraph
 from core.decision_engine import DecisionEngine
 from core.regime_engine import RegimeEngine
-from strategy.strategic_score_engine import build_rankings
+from core.v10_portfolio_autopilot import V10PortfolioAutopilot
+from core.v10_proposal_engine import V10ProposalEngine
+from core.v10_self_learning_engine import V10SelfLearningEngine
+from core.v10_sector_engine import V10SectorEngine
+from core.v10_weekly_report import load_or_build_rankings
 
 
 def _confidence_from_result(result: Any) -> float:
@@ -40,20 +49,47 @@ def _market_snapshot(results: list[Any]) -> dict[str, float]:
 
 
 def main() -> None:
-    ranked = build_rankings()
+    base_dir = Path(__file__).resolve().parent
+    ranked = load_or_build_rankings(base_dir, refresh=os.environ.get("V10_REFRESH") == "1")
     regime_engine = RegimeEngine()
     decision_engine = DecisionEngine()
+    portfolio_autopilot = V10PortfolioAutopilot()
+    self_learning_engine = V10SelfLearningEngine(base_dir / "reports" / "cache" / "v10_learning_state.json")
+    proposal_engine = V10ProposalEngine()
+    approval_engine = HumanApprovalEngine()
+    execution_engine = ExecutionEngine(base_dir / "reports" / "cache" / "v10_learning_state.json")
+    learning_context = self_learning_engine.adaptive_context()
+    sector_engine = V10SectorEngine.from_results(ranked)
+    cognitive_graph = V10CognitiveGraph()
+    sector_context = sector_engine.build_sector_context()
     market_data = _market_snapshot(ranked)
     regime_result = regime_engine.classify(market_data)
 
     print(f"Market Regime: {regime_result.regime} (trend={regime_result.trend:.2f}, volatility={regime_result.volatility:.2f})")
     print(f"Regime Reason: {regime_result.reason}")
     print("")
-    print("symbol\tscore\tconfidence\taction\thorizon\treason")
+    print("Sector Intelligence:")
+    print("sector\tstrength\trotation\tleader")
+    for row in sector_engine.sector_dashboard():
+        print(
+            f"{row['sector']}\t"
+            f"{row['sector_strength']:.2f}\t"
+            f"{row['rotation_signal']}\t"
+            f"{row['leader']}"
+        )
+    print("")
+    raw_decisions: list[dict[str, Any]] = []
     for item in ranked[:10]:
         confidence = _confidence_from_result(item)
+        symbol = getattr(item, "code", "UNKNOWN")
+        theme = getattr(item, "theme", "UNKNOWN")
+        item_sector_context = sector_context.get(str(symbol), {})
+        causal = cognitive_graph.infer_for_context(
+            sector=str(item_sector_context.get("sector", "UNKNOWN")),
+            theme=str(theme),
+        )
         decision = decision_engine.decide(
-            symbol=getattr(item, "code", "UNKNOWN"),
+            symbol=symbol,
             score=float(getattr(item, "strategic_score", 0.0)),
             regime=regime_result,
             confidence=confidence,
@@ -61,15 +97,67 @@ def main() -> None:
                 "price_zone": "UNKNOWN",
                 "momentum": "UNKNOWN",
                 "stage": "UNKNOWN",
+                "theme": theme,
+                "theme_tags": [
+                    theme,
+                    item_sector_context.get("sector", "UNKNOWN"),
+                ],
+                "causal_chain": causal.causal_chain,
+                "bottleneck_node": causal.bottleneck_node,
+                "chain_strength": causal.chain_strength,
+                "confidence_bias": learning_context.get("confidence_bias", 0.0),
+                "confidence_sensitivity": learning_context.get("confidence_sensitivity", 1.0),
+                **item_sector_context,
             },
         )
+        decision["score"] = round(float(getattr(item, "strategic_score", 0.0)), 2)
+        raw_decisions.append(decision)
+
+    final_decisions = portfolio_autopilot.apply_constraints(raw_decisions)
+    performance_log = self_learning_engine.evaluate_decision(final_decisions)
+    proposals = proposal_engine.generate_proposals(
+        performance_log,
+        {
+            "factor_weights": learning_context.get("adaptive_factor_weights", {}),
+            "confidence_bias": learning_context.get("confidence_bias", 0.0),
+            "confidence_sensitivity": learning_context.get("confidence_sensitivity", 1.0),
+        },
+    )
+    reviewed_proposals = approval_engine.review(proposals, approvals={})
+    execution_result = execution_engine.apply_approved(reviewed_proposals)
+
+    print("symbol\tsector\taction\tconfidence\tportfolio_exposure\trisk_score\tcausal_chain\tbottleneck_node\treason")
+    for decision in final_decisions:
         print(
             f"{decision['symbol']}\t"
-            f"{float(getattr(item, 'strategic_score', 0.0)):.2f}\t"
-            f"{decision['confidence']:.2f}\t"
+            f"{decision['sector']}\t"
             f"{decision['action']}\t"
-            f"{decision['horizon']}\t"
-            f"{decision['reason']}"
+            f"{decision['confidence']:.2f}\t"
+            f"{decision['portfolio_exposure']:.2f}\t"
+            f"{decision['risk_score']:.2f}\t"
+            f"{' -> '.join(decision['causal_chain']) if decision['causal_chain'] else 'NONE'}\t"
+            f"{decision['bottleneck_node']}\t"
+            f"{decision['reason']} {decision['portfolio_reason']}"
+        )
+
+    print("")
+    print("Human-in-the-Loop Learning Proposals:")
+    print(f"pending_proposals\t{len(proposals)}")
+    print(f"approved_proposals\t{execution_result['applied_count']}")
+    print(f"state_changed\t{execution_result['state_changed']}")
+    print(f"model_bias\t{execution_result['model_bias_detection']}")
+    print("proposal_preview")
+    for proposal in proposals[:10]:
+        print(
+            {
+                "proposal_id": proposal.proposal_id,
+                "type": proposal.proposal_type,
+                "target": proposal.target,
+                "current": proposal.current_value,
+                "proposed": proposal.proposed_value,
+                "status": proposal.status,
+                "reason": proposal.reason,
+            }
         )
 
 

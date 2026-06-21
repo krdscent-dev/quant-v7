@@ -1,0 +1,365 @@
+{
+  "generated_at": "2026-06-21T04:27:47.333902",
+  "results": [
+    {
+      "code": "603595.SH",
+      "name": "东尼电子",
+      "theme": "华为昇腾生态",
+      "strategic_score": 16.4,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 96.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "东尼电子 (603595.SH) 属于 华为昇腾生态 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "688041.SH",
+      "name": "海光信息",
+      "theme": "超节点受益链",
+      "strategic_score": 16.4,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 96.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "海光信息 (688041.SH) 属于 超节点受益链 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "002371.SZ",
+      "name": "北方华创",
+      "theme": "超节点受益链",
+      "strategic_score": 16.4,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 96.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "北方华创 (002371.SZ) 属于 超节点受益链 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "600460.SH",
+      "name": "士兰微",
+      "theme": "国产替代",
+      "strategic_score": 16.36,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 88.0,
+        "domestic_substitution_score": 95.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "士兰微 (600460.SH) 属于 国产替代 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "688012.SH",
+      "name": "中微公司",
+      "theme": "国产替代",
+      "strategic_score": 16.36,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 88.0,
+        "domestic_substitution_score": 95.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "中微公司 (688012.SH) 属于 国产替代 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "002156.SZ",
+      "name": "通富微电",
+      "theme": "先进封装",
+      "strategic_score": 16.27,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 88.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 94.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "通富微电 (002156.SZ) 属于 先进封装 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "600584.SH",
+      "name": "长电科技",
+      "theme": "先进封装",
+      "strategic_score": 16.27,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 88.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 94.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "长电科技 (600584.SH) 属于 先进封装 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "000977.SZ",
+      "name": "浪潮信息",
+      "theme": "AI算力",
+      "strategic_score": 16.25,
+      "factor_breakdown": {
+        "tau_factor_score": 92.0,
+        "supernode_score": 88.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "浪潮信息 (000977.SZ) 属于 AI算力 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "300308.SZ",
+      "name": "中际旭创",
+      "theme": "AI算力",
+      "strategic_score": 16.25,
+      "factor_breakdown": {
+        "tau_factor_score": 92.0,
+        "supernode_score": 88.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 88.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "中际旭创 (300308.SZ) 属于 AI算力 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "600703.SH",
+      "name": "三安光电",
+      "theme": "玻璃基板",
+      "strategic_score": 16.19,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 88.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 93.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "三安光电 (600703.SH) 属于 玻璃基板 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "688234.SH",
+      "name": "天岳先进",
+      "theme": "人造金刚石",
+      "strategic_score": 16.19,
+      "factor_breakdown": {
+        "tau_factor_score": 88.0,
+        "supernode_score": 88.0,
+        "domestic_substitution_score": 88.0,
+        "advanced_packaging_score": 88.0,
+        "order_confirmation_score": 58.71,
+        "advanced_material_score": 93.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "天岳先进 (688234.SH) 属于 人造金刚石 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "000034.SZ",
+      "name": "神州数码",
+      "theme": "华为昇腾生态",
+      "strategic_score": 13.33,
+      "factor_breakdown": {
+        "tau_factor_score": 72.0,
+        "supernode_score": 80.0,
+        "domestic_substitution_score": 72.0,
+        "advanced_packaging_score": 72.0,
+        "order_confirmation_score": 43.1,
+        "advanced_material_score": 72.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "神州数码 (000034.SZ) 属于 华为昇腾生态 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "000938.SZ",
+      "name": "紫光股份",
+      "theme": "超节点受益链",
+      "strategic_score": 13.33,
+      "factor_breakdown": {
+        "tau_factor_score": 72.0,
+        "supernode_score": 80.0,
+        "domestic_substitution_score": 72.0,
+        "advanced_packaging_score": 72.0,
+        "order_confirmation_score": 43.1,
+        "advanced_material_score": 72.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "紫光股份 (000938.SZ) 属于 超节点受益链 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "688126.SH",
+      "name": "沪硅产业",
+      "theme": "国产替代",
+      "strategic_score": 13.3,
+      "factor_breakdown": {
+        "tau_factor_score": 72.0,
+        "supernode_score": 72.0,
+        "domestic_substitution_score": 79.0,
+        "advanced_packaging_score": 72.0,
+        "order_confirmation_score": 43.1,
+        "advanced_material_score": 72.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "沪硅产业 (688126.SH) 属于 国产替代 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "002185.SZ",
+      "name": "华天科技",
+      "theme": "先进封装",
+      "strategic_score": 13.2,
+      "factor_breakdown": {
+        "tau_factor_score": 72.0,
+        "supernode_score": 72.0,
+        "domestic_substitution_score": 72.0,
+        "advanced_packaging_score": 78.0,
+        "order_confirmation_score": 43.1,
+        "advanced_material_score": 72.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "华天科技 (002185.SZ) 属于 先进封装 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "002230.SZ",
+      "name": "科大讯飞",
+      "theme": "AI算力",
+      "strategic_score": 13.18,
+      "factor_breakdown": {
+        "tau_factor_score": 76.0,
+        "supernode_score": 72.0,
+        "domestic_substitution_score": 72.0,
+        "advanced_packaging_score": 72.0,
+        "order_confirmation_score": 43.1,
+        "advanced_material_score": 72.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "科大讯飞 (002230.SZ) 属于 AI算力 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "002192.SZ",
+      "name": "融捷股份",
+      "theme": "人造金刚石",
+      "strategic_score": 13.12,
+      "factor_breakdown": {
+        "tau_factor_score": 72.0,
+        "supernode_score": 72.0,
+        "domestic_substitution_score": 72.0,
+        "advanced_packaging_score": 72.0,
+        "order_confirmation_score": 43.1,
+        "advanced_material_score": 77.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "融捷股份 (002192.SZ) 属于 人造金刚石 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "600588.SH",
+      "name": "用友网络",
+      "theme": "华为昇腾生态",
+      "strategic_score": 10.71,
+      "factor_breakdown": {
+        "tau_factor_score": 58.0,
+        "supernode_score": 66.0,
+        "domestic_substitution_score": 58.0,
+        "advanced_packaging_score": 58.0,
+        "order_confirmation_score": 31.66,
+        "advanced_material_score": 58.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "用友网络 (600588.SH) 属于 华为昇腾生态 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "688002.SH",
+      "name": "睿创微纳",
+      "theme": "玻璃基板",
+      "strategic_score": 10.5,
+      "factor_breakdown": {
+        "tau_factor_score": 58.0,
+        "supernode_score": 58.0,
+        "domestic_substitution_score": 58.0,
+        "advanced_packaging_score": 58.0,
+        "order_confirmation_score": 31.66,
+        "advanced_material_score": 63.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "睿创微纳 (688002.SH) 属于 玻璃基板 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    },
+    {
+      "code": "300395.SZ",
+      "name": "菲利华",
+      "theme": "人造金刚石",
+      "strategic_score": 10.5,
+      "factor_breakdown": {
+        "tau_factor_score": 58.0,
+        "supernode_score": 58.0,
+        "domestic_substitution_score": 58.0,
+        "advanced_packaging_score": 58.0,
+        "order_confirmation_score": 31.66,
+        "advanced_material_score": 63.0,
+        "confidence_score": 0.19,
+        "final_confidence": 0.19
+      },
+      "score_explanation": "菲利华 (300395.SZ) 属于 人造金刚石 主题，战略评分强调中期产业趋势强度。 当前分值由 τ因子、超节点、国产替代、先进封装、订单验证和先进材料共同决定。",
+      "evidence_refs": {}
+    }
+  ]
+}

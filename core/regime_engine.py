@@ -1,4 +1,4 @@
-"""Simple market regime classifier for the V10 decision layer."""
+﻿"""Simple market regime classifier for the V10 decision layer."""
 
 from __future__ import annotations
 
@@ -33,23 +33,23 @@ class RegimeEngine:
         if trend >= 0.75 and volatility <= 0.35:
             regime = "BULL"
             confidence = 0.92
-            reason = "趋势强且波动可控，属于风险偏好上行环境。"
+            reason = "Strong trend with controlled volatility; risk appetite is rising."
         elif trend >= 0.55 and volatility <= 0.55:
             regime = "STRUCTURAL"
             confidence = 0.84
-            reason = "趋势中强，市场更偏结构性主线驱动。"
+            reason = "Medium-strong trend; market is driven by structural themes."
         elif trend >= 0.35 and volatility <= 0.70:
             regime = "ROTATION"
             confidence = 0.78
-            reason = "趋势一般但存在轮动，适合围绕主题切换观察。"
+            reason = "Trend is mixed; opportunities are theme-rotation driven."
         elif volatility >= 0.70 and trend >= 0.25:
             regime = "DEFENSIVE"
             confidence = 0.74
-            reason = "波动偏高，风险控制优先。"
+            reason = "Volatility is elevated; risk control should lead sizing."
         else:
             regime = "BEAR"
             confidence = 0.88
-            reason = "趋势偏弱或波动偏大，防守优先。"
+            reason = "Trend is weak; BEAR reduces size but does not invalidate trades."
 
         return RegimeResult(
             regime=regime,
@@ -58,4 +58,3 @@ class RegimeEngine:
             confidence=confidence,
             reason=reason,
         )
-

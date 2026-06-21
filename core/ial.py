@@ -14,6 +14,7 @@ class InvestmentActionLanguage(str, Enum):
     """Canonical investment actions."""
 
     BUY = "BUY"
+    SMALL_ADD = "SMALL_ADD"
     ADD = "ADD"
     HOLD = "HOLD"
     REDUCE = "REDUCE"
@@ -29,5 +30,4 @@ def normalize_action(action: str | None) -> str:
     """Normalize arbitrary text into a supported action value."""
 
     candidate = str(action or "").strip().upper()
-    return candidate if candidate in VALID_ACTIONS else InvestmentActionLanguage.INVALIDATE.value
-
+    return candidate if candidate in VALID_ACTIONS else InvestmentActionLanguage.OBSERVE.value
