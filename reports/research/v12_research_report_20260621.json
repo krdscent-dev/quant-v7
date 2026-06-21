@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T19:18:18",
+  "generated_at": "2026-06-21T19:21:37",
   "system_type": "RESEARCH_AND_EVALUATION_ONLY",
   "report": {
     "market_regime": {
@@ -96,6 +96,7 @@
     },
     "recommendation": "NO_GO",
     "confidence": 0.5463,
+    "confidence_label": "CONFIDENT",
     "diagnosis": {
       "health": {
         "status": "CRITICAL",

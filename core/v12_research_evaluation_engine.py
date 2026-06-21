@@ -48,6 +48,7 @@ class ResearchEvaluationResult:
     backtest_result: dict[str, float]
     recommendation: str
     confidence: float
+    confidence_label: str
     repair_suggestions: list[dict[str, Any]]
     diagnosis: dict[str, Any]
     evaluation_summary: str
@@ -292,12 +293,18 @@ class V12ResearchEvaluationEngine:
             1.0,
         )
 
-        if not records:
-            recommendation = "NEED_OPTIMIZATION"
+        confidence_label = "LOW CONFIDENCE" if (not records or confidence < 0.5) else "CONFIDENT"
+        if not records or not snapshots:
+            recommendation = "OBSERVE"
+            confidence_label = "LOW CONFIDENCE"
+        elif float(validation.get("overfit_risk", 0.0) or 0.0) > 0.7:
+            recommendation = "NO_GO"
+        elif float(backtest_result.max_drawdown) > 0.2:
+            recommendation = "OBSERVE"
+        elif stability_score > 0.7 and float(backtest_result.total_return) > 0:
+            recommendation = "GO"
         elif health.status == "CRITICAL" or stability_score < 0.5 or risk_score > 0.7:
             recommendation = "NO_GO"
-        elif float(backtest_result.total_return) > 0 and stability_score >= 0.6 and risk_score <= 0.55:
-            recommendation = "GO"
         else:
             recommendation = "NEED_OPTIMIZATION"
 
@@ -328,6 +335,7 @@ class V12ResearchEvaluationEngine:
             "backtest_result": backtest_summary,
             "recommendation": recommendation,
             "confidence": round(confidence, 4),
+            "confidence_label": confidence_label,
             "diagnosis": {
                 "health": asdict(health),
                 "biases": [asdict(item) for item in biases],
