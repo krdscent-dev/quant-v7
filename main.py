@@ -28,6 +28,9 @@ from core.main_orchestrator import MainOrchestrator
 from core.v11_agents import V11AgentOrchestrator
 from analytics.attribution_engine import AttributionEngine
 from backtest.v12_6_backtest_engine import V126BacktestEngine
+from diagnosis.bias_detector import BiasDetector
+from diagnosis.repair_engine import RepairEngine
+from diagnosis.v12_7_health_monitor import HealthMonitor
 from logs.trade_logger import TradeLogger
 from market.v12_1_structure_engine import analyze_market_structure
 from market.v12_2_capital_flow_engine import V122CapitalFlowEngine
@@ -402,6 +405,72 @@ def main() -> None:
         print("backtest_warnings")
         for warning in v126_result.warnings[:10]:
             print(f"- {warning}")
+
+    trade_logs = trade_logger.read_trades()
+    agent_weights = {}
+    agent_accuracy = []
+    if v11_decisions:
+        agent_weights = dict(v11_decisions[0].get("current_agent_weights", {}) or {})
+        for decision in v11_decisions:
+            summary = decision.get("agent_performance_summary", {}) or {}
+            if summary:
+                agent_accuracy.extend(float(item.get("accuracy", 0.0) or 0.0) for item in summary.values())
+    health_monitor = HealthMonitor()
+    bias_detector = BiasDetector()
+    repair_engine = RepairEngine()
+    health_report = health_monitor.assess(
+        {
+            "total_return": v126_result.total_return,
+            "max_drawdown": v126_result.max_drawdown,
+            "win_rate": v126_result.win_rate,
+        },
+        trade_logs,
+        {
+            "agent_accuracy": sum(agent_accuracy) / len(agent_accuracy) if agent_accuracy else 0.0,
+            "risk_events": len(v126_result.warnings),
+            "volatility": float(v126_result.attribution.layer_breakdown.get("capital_control", 0.0) or 0.0),
+            "confidence_bias": execution_result["model_bias_detection"].get("confidence_bias", "neutral"),
+        },
+    )
+    bias_findings = bias_detector.detect(
+        trade_logs,
+        agent_weights=agent_weights,
+        performance_metrics=execution_result["model_bias_detection"],
+    )
+    repair_suggestions = repair_engine.propose(
+        health_report,
+        bias_findings,
+        {
+            "total_return": v126_result.total_return,
+            "max_drawdown": v126_result.max_drawdown,
+            "win_rate": v126_result.win_rate,
+        },
+    )
+
+    print("")
+    print("V12.7 Self-Diagnosis:")
+    print(f"system_health\t{health_report.status}")
+    print(f"severity\t{health_report.severity}")
+    print(f"health_score\t{health_report.score:.4f}")
+    print(f"drawdown_risk\t{health_report.drawdown_risk}")
+    print(f"accuracy_risk\t{health_report.accuracy_risk}")
+    print(f"risk_level\t{health_report.risk_level}")
+    if health_report.warnings:
+        print("health_warnings")
+        for item in health_report.warnings:
+            print(f"- {item}")
+    print("bias_detection")
+    for finding in bias_findings:
+        print(f"{finding.bias_name}\tseverity={finding.severity}\tmessage={finding.message}\tevidence={finding.evidence}")
+    print("repair_suggestions")
+    for suggestion in repair_suggestions:
+        print(
+            f"{suggestion.priority}\t"
+            f"{suggestion.severity}\t"
+            f"{suggestion.title}\t"
+            f"{suggestion.action}\t"
+            f"{suggestion.expected_effect}"
+        )
 
 
 if __name__ == "__main__":
