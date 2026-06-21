@@ -195,7 +195,7 @@
   - AVOID
 
 ### 14 Workflow Summary
-- Workflow 3f64e31e023d4979904dab61c399db8f completed with 17 successful steps, 0 failed steps and 0 skipped steps.
+- Workflow 6dd88f99e5a242c4ae2361183ad53d98 completed with 17 successful steps, 0 failed steps and 0 skipped steps.
 - Workflow Status: SUCCESS
 
 ### 15 Quality & Audit
@@ -203,7 +203,7 @@
 - passed_count: 7
 - failed_count: 0
 - overall_status: WARNING
-- warning_count: 2
+- warning_count: 3
 - skill_readiness: Skill A Data Analysis=READY, Skill B Graph Analysis=READY, Skill C Research=READY, Skill D Visualization=READY
 
 ### Quality Report
@@ -213,8 +213,8 @@
 
 ### Audit Report
 - overall_status: WARNING
-- passed_count: 18
-- warning_count: 2
+- passed_count: 17
+- warning_count: 3
 - failed_count: 0
 
 ### RC1 Status

@@ -17,7 +17,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
-from typing import Iterable, Protocol
+from typing import Any, Iterable, Mapping, Protocol
 
 try:
     import akshare as ak  # type: ignore
@@ -943,12 +943,109 @@ def build_argument_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> int:
-    """Run the pure research and evaluation pipeline.
+def load_market_data(symbols: Iterable[str] | None = None) -> dict[str, Any]:
+    """Load the market input for a single locked V12 run."""
 
-    This replaces live execution behavior with deterministic analysis,
-    backtesting, diagnosis, and reporting.
-    """
+    symbol_list = _parse_symbols(",".join(symbols) if symbols is not None else os.environ.get("V12_RESEARCH_SYMBOLS", ",".join(DEFAULT_SYMBOLS)))
+    return {
+        "symbols": symbol_list,
+        "source": "V12_RESEARCH_UNIVERSE",
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+    }
+
+
+def run_v12_engine(market_data: Mapping[str, Any]) -> dict[str, Any]:
+    """Execute the V12 core engine for the provided market data."""
+
+    from core.v12_research_evaluation_engine import run_v12_research_evaluation
+
+    symbols = market_data.get("symbols", DEFAULT_SYMBOLS)
+    return run_v12_research_evaluation(symbols=tuple(symbols))
+
+
+def generate_research_report(v12_result: Mapping[str, Any]) -> dict[str, str]:
+    """Persist the locked V12 research report."""
+
+    from core.v12_research_report import V12ResearchReport
+
+    return V12ResearchReport().write(v12_result)
+
+
+def normalize_schema(v12_result: Mapping[str, Any]) -> dict[str, Any]:
+    """Convert the raw research output into the unified V12 schema."""
+
+    from core.v12_report_normalizer import normalize_v12_report
+
+    return normalize_v12_report(v12_result)
+
+
+def adapt_to_dashboard(normalized_report: Mapping[str, Any]) -> dict[str, Any]:
+    """Convert normalized output into dashboard-ready adapter JSON."""
+
+    from core.v12_dashboard_adapter import adapt_v12_dashboard
+
+    return adapt_v12_dashboard(normalized_report)
+
+
+def render_ui(adapter_output: Mapping[str, Any]) -> dict[str, Any]:
+    """Convert adapter output into the read-only UI layer."""
+
+    from ui.v12_ui_layer import build_v12_ui
+
+    return build_v12_ui(adapter_output)
+
+
+def compute_final_decision(
+    v12_result: Mapping[str, Any],
+    normalized_report: Mapping[str, Any],
+    dashboard_output: Mapping[str, Any],
+    ui_output: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Derive the final human-facing decision from the locked pipeline."""
+
+    decision = dict(normalized_report.get("decision", {}))
+    explanation = dict(normalized_report.get("explanation", {}))
+    final_action = str(decision.get("action", "HOLD"))
+    final_confidence = float(decision.get("confidence", 0.3) or 0.3)
+    if ui_output.get("status") == "ARCHITECTURE VIOLATION":
+        final_action = "HOLD"
+        final_confidence = min(final_confidence, 0.3)
+    return {
+        "action": final_action,
+        "confidence": round(final_confidence, 4),
+        "risk_level": decision.get("risk_level", "MEDIUM"),
+        "reasoning": list(explanation.get("key_factors", [])),
+        "dominant_driver": explanation.get("dominant_driver", "neutral fallback"),
+        "report_recommendation": v12_result.get("recommendation", "OBSERVE"),
+        "dashboard_status": dashboard_output.get("decision_core", {}).get("final_action", final_action),
+        "ui_status": ui_output.get("status", "NORMAL"),
+        "pipeline": "main.py",
+    }
+
+
+def run_v12_locked_pipeline(symbols: Iterable[str] | None = None) -> dict[str, Any]:
+    """Run the full locked V12 pipeline once and return every stage."""
+
+    market_data = load_market_data(symbols)
+    v12_result = run_v12_engine(market_data)
+    report_paths = generate_research_report(v12_result)
+    normalized_report = normalize_schema(v12_result)
+    dashboard_output = adapt_to_dashboard(normalized_report)
+    ui_output = render_ui(dashboard_output)
+    final_decision = compute_final_decision(v12_result, normalized_report, dashboard_output, ui_output)
+    return {
+        "market_data": market_data,
+        "v12_result": v12_result,
+        "report_paths": report_paths,
+        "normalized_report": normalized_report,
+        "dashboard_output": dashboard_output,
+        "ui_output": ui_output,
+        "final_decision": final_decision,
+    }
+
+
+def main() -> int:
+    """Run the locked V12 pipeline through the single production entrypoint."""
 
     parser = argparse.ArgumentParser(description="V12 pure research and evaluation pipeline")
     parser.add_argument(
@@ -965,15 +1062,15 @@ def main() -> int:
     args = parser.parse_args()
     symbols = _parse_symbols(args.symbols)
 
-    from core.v12_research_evaluation_engine import run_v12_research_evaluation
-    from core.v12_research_report import V12ResearchReport
-    from core.v12_dashboard_refresh import refresh_dashboard
-
-    result = run_v12_research_evaluation(symbols=symbols)
-    report_paths = V12ResearchReport().write(result)
-    print(report_paths["markdown"])
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    pipeline = run_v12_locked_pipeline(symbols=symbols)
+    print(json.dumps(pipeline["report_paths"], ensure_ascii=False, indent=2))
+    print(json.dumps(pipeline["normalized_report"], ensure_ascii=False, indent=2))
+    print(json.dumps(pipeline["dashboard_output"], ensure_ascii=False, indent=2))
+    print(json.dumps(pipeline["ui_output"], ensure_ascii=False, indent=2))
+    print(json.dumps(pipeline["final_decision"], ensure_ascii=False, indent=2))
     if args.dashboard_refresh:
+        from core.v12_dashboard_refresh import refresh_dashboard
+
         snapshot = refresh_dashboard(symbols=symbols)
         print(json.dumps(snapshot, ensure_ascii=False, indent=2))
     return 0
