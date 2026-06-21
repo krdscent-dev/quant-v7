@@ -24,6 +24,7 @@ from core.v10_self_learning_engine import V10SelfLearningEngine
 from core.v10_sector_engine import V10SectorEngine
 from core.v10_version_control import V10VersionControl
 from core.v10_weekly_report import load_or_build_rankings
+from core.main_orchestrator import MainOrchestrator
 from core.v11_agents import V11AgentOrchestrator
 from market.v12_1_structure_engine import analyze_market_structure
 from market.v12_2_capital_flow_engine import V122CapitalFlowEngine
@@ -200,34 +201,21 @@ def main() -> None:
         audit_engine=audit_engine,
     )
     learning_context = self_learning_engine.adaptive_context()
-    sector_engine = V10SectorEngine.from_results(ranked)
-    v11_orchestrator = V11AgentOrchestrator(sector_engine, audit_engine)
-    cognitive_graph = V10CognitiveGraph()
+    orchestrator = MainOrchestrator(ranked, decision_engine=decision_engine, audit_engine=audit_engine)
+    orchestration = orchestrator.run(learning_context)
+    sector_engine = orchestration.sector_engine
+    market_structure = orchestration.market_state["structure"]
+    capital_flow_analysis = orchestration.market_state["capital_flow"]
+    narrative = orchestration.market_state["narrative"]
+    cycle_state = orchestration.market_state["cycle"]
+    regime_result = orchestration.regime_result
+    capital_state = orchestration.capital_state
     sector_context = sector_engine.build_sector_context()
-    market_data = _market_snapshot(ranked)
-    legacy_regime_result = regime_engine.classify(market_data)
-    market_structure = analyze_market_structure(
-        trend_score=market_data["trend"],
-        volatility=market_data["volatility"],
-        price_momentum=market_data["price_momentum"],
-    )
-    sector_volume, capital_inflow, capital_outflow, leader_volume = _sector_flow_inputs(sector_engine)
-    capital_flow_analysis = V122CapitalFlowEngine().analyze_sector_flows(
-        sector_trading_volume=sector_volume,
-        capital_inflow=capital_inflow,
-        capital_outflow=capital_outflow,
-        leader_stock_volume=leader_volume,
-    )
     capital_flows = capital_flow_analysis.ranked_flows
     flow_by_sector = {item.sector: item for item in capital_flows}
-    narrative = V123NarrativeEngine().extract_market_theme(
-        sector_data=sector_engine.sector_scores,
-        capital_flow_data=capital_flow_analysis,
-        market_structure=market_structure,
-    )
-    cycle_inputs = _cycle_inputs(market_structure, capital_flow_analysis, narrative, sector_engine, ranked)
-    cycle_state = V124CycleEngine().build_cycle_state(*cycle_inputs)
-    regime_result = _V12RegimeAdapter(market_structure, legacy_regime_result)
+    raw_decisions = orchestration.decisions
+    final_decisions = raw_decisions
+    v11_decisions = orchestration.v11_decisions
 
     print("V12 Market Intelligence:")
     print(f"market_regime\t{market_structure.regime}\ttrend={market_structure.trend_score:.2f}\tvolatility={market_structure.volatility:.2f}\tmomentum={market_structure.price_momentum:.2f}\tvolatility_state={market_structure.volatility_state}\tstructure_strength={market_structure.structure_strength:.2f}\tconfidence={market_structure.confidence:.2f}")
@@ -245,6 +233,16 @@ def main() -> None:
         f"industry={cycle_state.industry_cycle}\t"
         f"risk_appetite={cycle_state.risk_appetite}\taggressiveness={cycle_state.aggressiveness:.2f}"
     )
+    print("capital_control")
+    print(
+        "capital_state\t"
+        f"risk_score={capital_state['risk_score']:.2f}\t"
+        f"capital_bias={capital_state['capital_bias']}\t"
+        f"allocation_ceiling={capital_state['allocation_ceiling']:.2f}\t"
+        f"exposure_breadth={capital_state['exposure_breadth']}"
+    )
+    print(f"capital_exposure\t{capital_state['exposure']}")
+    print(f"capital_rebalance\t{capital_state['rebalance_signals']}")
     print(f"flow_strength\t{capital_flow_analysis.flow_strength}")
     print(f"leader_concentration\t{capital_flow_analysis.leader_concentration:.2f}")
     print(f"rotation_path\t{' -> '.join(capital_flow_analysis.rotation_path)}")
@@ -266,107 +264,8 @@ def main() -> None:
             f"{row['leader']}"
         )
     print("")
-    raw_decisions: list[dict[str, Any]] = []
-    for item in ranked[:10]:
-        confidence = _confidence_from_result(item)
-        symbol = getattr(item, "code", "UNKNOWN")
-        theme = getattr(item, "theme", "UNKNOWN")
-        item_sector_context = sector_context.get(str(symbol), {})
-        sector_flow = flow_by_sector.get(str(item_sector_context.get("sector", "")))
-        causal = cognitive_graph.infer_for_context(
-            sector=str(item_sector_context.get("sector", "UNKNOWN")),
-            theme=str(theme),
-        )
-        decision = decision_engine.decide(
-            symbol=symbol,
-            score=float(getattr(item, "strategic_score", 0.0)),
-            regime=regime_result,
-            confidence=confidence,
-            context={
-                "price_zone": "UNKNOWN",
-                "momentum": "UNKNOWN",
-                "stage": "UNKNOWN",
-                "theme": theme,
-                "theme_tags": [
-                    theme,
-                    item_sector_context.get("sector", "UNKNOWN"),
-                ],
-                "causal_chain": causal.causal_chain,
-                "bottleneck_node": causal.bottleneck_node,
-                "chain_strength": causal.chain_strength,
-                "confidence_bias": learning_context.get("confidence_bias", 0.0),
-                "confidence_sensitivity": learning_context.get("confidence_sensitivity", 1.0),
-                "dominant_narrative": narrative.dominant_narrative,
-                "active_narratives": [item.narrative for item in narrative.active_narratives],
-                "narrative_strength": narrative.narrative_strength,
-                "narrative_phase": narrative.narrative_phase,
-                "narrative_consistency": narrative.consistency,
-                "supporting_themes": narrative.supporting_themes,
-                "macro_cycle": cycle_state.macro_cycle,
-                "liquidity_cycle": cycle_state.liquidity_cycle,
-                "sentiment_cycle": cycle_state.sentiment_cycle,
-                "industry_cycle": cycle_state.industry_cycle,
-                "risk_appetite": cycle_state.risk_appetite,
-                "combined_cycle_state": cycle_state.combined_cycle_state,
-                "cycle_aggressiveness": cycle_state.aggressiveness,
-                "capital_flow_score": sector_flow.flow_score if sector_flow else 0.0,
-                "capital_flow_direction": sector_flow.direction if sector_flow else "UNKNOWN",
-                "leader_concentration": sector_flow.leader_concentration if sector_flow else 0.0,
-                "rotation_path": capital_flow_analysis.rotation_path,
-                "cycle_state": {
-                    "liquidity_cycle": cycle_state.liquidity_cycle,
-                    "sentiment_cycle": cycle_state.sentiment_cycle,
-                    "industry_cycle": cycle_state.industry_cycle,
-                    "combined_cycle_state": cycle_state.combined_cycle_state,
-                    "risk_appetite": cycle_state.risk_appetite,
-                    "aggressiveness": cycle_state.aggressiveness,
-                    "liquidity_score": cycle_state.liquidity_score,
-                    "fear_index": cycle_state.fear_index,
-                    "industry_growth": cycle_state.industry_growth,
-                    "valuation_score": cycle_state.valuation_score,
-                },
-                **item_sector_context,
-            },
-        )
-        decision["score"] = round(float(getattr(item, "strategic_score", 0.0)), 2)
-        decision["dominant_narrative"] = narrative.dominant_narrative
-        decision["active_narratives"] = [item.narrative for item in narrative.active_narratives]
-        decision["narrative_strength"] = narrative.narrative_strength
-        decision["narrative_phase"] = narrative.narrative_phase
-        decision["narrative_consistency"] = narrative.consistency
-        decision["supporting_themes"] = narrative.supporting_themes
-        decision["macro_cycle"] = cycle_state.macro_cycle
-        decision["liquidity_cycle"] = cycle_state.liquidity_cycle
-        decision["sentiment_cycle"] = cycle_state.sentiment_cycle
-        decision["industry_cycle"] = cycle_state.industry_cycle
-        decision["risk_appetite"] = cycle_state.risk_appetite
-        decision["combined_cycle_state"] = cycle_state.combined_cycle_state
-        decision["cycle_aggressiveness"] = cycle_state.aggressiveness
-        decision["capital_flow_score"] = sector_flow.flow_score if sector_flow else 0.0
-        decision["capital_flow_direction"] = sector_flow.direction if sector_flow else "UNKNOWN"
-        decision["leader_concentration"] = sector_flow.leader_concentration if sector_flow else 0.0
-        decision["rotation_path"] = capital_flow_analysis.rotation_path
-        decision["cycle_state"] = {
-            "liquidity_cycle": cycle_state.liquidity_cycle,
-            "sentiment_cycle": cycle_state.sentiment_cycle,
-            "industry_cycle": cycle_state.industry_cycle,
-            "combined_cycle_state": cycle_state.combined_cycle_state,
-            "risk_appetite": cycle_state.risk_appetite,
-            "aggressiveness": cycle_state.aggressiveness,
-            "liquidity_score": cycle_state.liquidity_score,
-            "fear_index": cycle_state.fear_index,
-            "industry_growth": cycle_state.industry_growth,
-            "valuation_score": cycle_state.valuation_score,
-        }
-        raw_decisions.append(decision)
-
-    final_decisions = portfolio_autopilot.apply_constraints(raw_decisions)
     performance_log = self_learning_engine.evaluate_decision(final_decisions)
     agent_performance_log = _agent_performance_from_decisions(final_decisions, regime_result.regime)
-    v11_decisions = [
-        v11_orchestrator.run(decision, regime_result, agent_performance_log=agent_performance_log)
-        for decision in final_decisions
-    ]
     pre_snapshot = version_control.snapshot("pre_governance")
     proposals = proposal_engine.generate_proposals(
         performance_log,
