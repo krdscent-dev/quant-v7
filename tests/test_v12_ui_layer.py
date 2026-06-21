@@ -60,10 +60,10 @@ class V12UILayerTest(unittest.TestCase):
         assert ui["layout"] == "dashboard"
         assert ui["mode"] == "MANUAL_REFRESH_ONLY"
         assert ui["confidence_state"] == "LOW CONFIDENCE"
-        assert ui["components"][0]["label"] == "Refresh Snapshot"
-        assert ui["components"][3]["data"]["action"] == "HOLD"
-        assert ui["components"][3]["data"]["confidence"] == 0.3
-        assert ui["components"][4]["data"]["items"] == ["neutral"]
+        assert ui["components"][0]["type"] == "status_banner"
+        assert ui["components"][0]["label"] == "NO VALID SNAPSHOT"
+        assert ui["components"][2]["data"]["action"] == "HOLD"
+        assert ui["components"][2]["data"]["confidence"] == 0.3
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -6,6 +6,10 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 
+class V12DashboardAdapterError(ValueError):
+    """Raised when a payload cannot be adapted or validated."""
+
+
 def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, value))
 
@@ -27,6 +31,19 @@ def _safe_list(value: Any) -> list[Any]:
     if isinstance(value, tuple):
         return list(value)
     return []
+
+
+def validate_dashboard_adapter_output(payload: Mapping[str, Any] | None) -> bool:
+    """Validate the adapter output structure without touching raw reports."""
+
+    if not isinstance(payload, Mapping):
+        return False
+    panels = payload.get("panels")
+    if not isinstance(panels, list) or len(panels) < 4:
+        return False
+    expected = ["market_overview", "risk", "performance", "decision_core"]
+    actual = [str(panel.get("panel", "")) for panel in panels[:4] if isinstance(panel, Mapping)]
+    return actual == expected
 
 
 @dataclass(frozen=True)
@@ -68,7 +85,7 @@ class V12DashboardAdapter:
         if not reasoning:
             reasoning = ["neutral"]
 
-        return {
+        payload = {
             "panels": [
                 {
                     "panel": "market_overview",
@@ -97,10 +114,12 @@ class V12DashboardAdapter:
                 },
             ]
         }
+        if not validate_dashboard_adapter_output(payload):
+            raise V12DashboardAdapterError("Invalid dashboard adapter output")
+        return payload
 
 
 def adapt_v12_dashboard(normalized_report: Mapping[str, Any] | None) -> dict[str, Any]:
     """Convenience wrapper for dashboard JSON transformation."""
 
     return V12DashboardAdapter().adapt(normalized_report)
-

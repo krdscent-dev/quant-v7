@@ -14,8 +14,10 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from core.v12_dashboard_builder import build_v12_dashboard
+from core.v12_dashboard_adapter import adapt_v12_dashboard
 from core.v12_report_normalizer import normalize_v12_report
 from core.v12_research_evaluation_engine import run_v12_research_evaluation
+from ui.v12_ui_layer import build_v12_ui
 
 
 def _now_iso() -> str:
@@ -86,6 +88,8 @@ class V12DashboardRefreshManager:
         raw_report = run_v12_research_evaluation(symbols=symbols)
         normalized = normalize_v12_report(raw_report)
         dashboard = build_v12_dashboard(normalized)
+        adapter_output = adapt_v12_dashboard(normalized)
+        ui_layout = build_v12_ui(adapter_output)
         return {
             "timestamp": _now_iso(),
             "refresh_mode": "MANUAL_ONLY",
@@ -97,6 +101,8 @@ class V12DashboardRefreshManager:
             "reasoning": normalized["explanation"],
             "system_health": normalized["system_health"],
             "dashboard": dashboard,
+            "dashboard_adapter": adapter_output,
+            "ui_layout": ui_layout,
             "warnings": [],
         }
 
@@ -169,4 +175,3 @@ def load_last_dashboard_snapshot() -> dict[str, Any] | None:
 
     manager = V12DashboardRefreshManager()
     return manager._load_last_snapshot()
-

@@ -957,16 +957,29 @@ def main() -> int:
         default=os.environ.get("V12_RESEARCH_SYMBOLS", ",".join(DEFAULT_SYMBOLS)),
         help="Comma-separated A-share symbols for the research universe.",
     )
+    parser.add_argument(
+        "--dashboard-refresh",
+        action="store_true",
+        help="Run the manual V12 dashboard refresh path and emit dashboard UI JSON.",
+    )
     args = parser.parse_args()
     symbols = _parse_symbols(args.symbols)
 
     from core.v12_research_evaluation_engine import run_v12_research_evaluation
     from core.v12_research_report import V12ResearchReport
+    from core.v12_dashboard_adapter import adapt_v12_dashboard
+    from core.v12_report_normalizer import normalize_v12_report
+    from ui.v12_ui_layer import build_v12_ui
 
     result = run_v12_research_evaluation(symbols=symbols)
     report_paths = V12ResearchReport().write(result)
     print(report_paths["markdown"])
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    if args.dashboard_refresh:
+        normalized = normalize_v12_report(result)
+        dashboard_adapter_output = adapt_v12_dashboard(normalized)
+        ui_layout = build_v12_ui(dashboard_adapter_output)
+        print(json.dumps(ui_layout, ensure_ascii=False, indent=2))
     return 0
 
 
