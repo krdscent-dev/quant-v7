@@ -24,10 +24,21 @@ try:
 except Exception:  # pragma: no cover - optional dependency
     ak = None
 
+from portfolio.alpha_ranker import AlphaRanker, RankedSymbol
+from portfolio.multi_symbol_data_engine import MultiSymbolDataEngine, SymbolSnapshot
+from portfolio.portfolio_allocator import PortfolioAllocator, PortfolioWeight
+
 
 SEED = int(os.environ.get("V12_SEED", "42"))
 DEFAULT_INTERVAL_SECONDS = float(os.environ.get("V12_INTERVAL_SECONDS", "2.0"))
 DEFAULT_ITERATIONS = int(os.environ.get("V12_ITERATIONS", "1"))
+DEFAULT_SYMBOLS = (
+    "000001",
+    "000333",
+    "300750",
+    "600519",
+    "601318",
+)
 
 
 def _clamp(value: float, low: float, high: float) -> float:
@@ -111,6 +122,34 @@ class CycleResult:
     decision: Decision
     issues: list[Issue]
     final_decision: FinalDecision
+
+
+@dataclass(frozen=True)
+class PortfolioDecisionRecord:
+    symbol: str
+    rank: int
+    alpha_score: float
+    portfolio_weight: float
+    market_state: MarketState
+    capital_state: CapitalState
+    decision: Decision
+    issues: tuple[Issue, ...]
+    final_decision: FinalDecision
+    data_source: str
+    data_status: str
+
+
+@dataclass(frozen=True)
+class PortfolioRunResult:
+    timestamp: str
+    universe: tuple[str, ...]
+    symbol_snapshots: tuple[SymbolSnapshot, ...]
+    ranked_symbols: tuple[RankedSymbol, ...]
+    weights: tuple[PortfolioWeight, ...]
+    overall_market_data: MarketData
+    overall_market_state: MarketState
+    capital_state: CapitalState
+    decisions: tuple[PortfolioDecisionRecord, ...]
 
 
 class MarketFeed(Protocol):
@@ -491,6 +530,102 @@ def _print_key_value(key: str, value: object) -> None:
     print(f"{key}: {value}")
 
 
+def _parse_symbols(symbols_text: str | None) -> tuple[str, ...]:
+    if not symbols_text:
+        return DEFAULT_SYMBOLS
+    symbols = tuple(
+        symbol.strip()
+        for symbol in symbols_text.split(",")
+        if symbol.strip()
+    )
+    return symbols or DEFAULT_SYMBOLS
+
+
+def _market_data_from_snapshot(snapshot: SymbolSnapshot, iteration: int = 0) -> MarketData:
+    return MarketData(
+        iteration=iteration,
+        trend=snapshot.trend,
+        volatility=snapshot.volatility,
+        momentum=snapshot.momentum,
+        breadth=snapshot.breadth,
+        liquidity=snapshot.liquidity,
+        volume_pressure=snapshot.volume_pressure,
+        data_source=snapshot.data_source,
+        data_status=snapshot.data_status,
+        timestamp=snapshot.timestamp,
+    )
+
+
+def _aggregate_market_data(snapshots: Iterable[SymbolSnapshot]) -> MarketData:
+    items = list(snapshots)
+    if not items:
+        return MarketData(
+            iteration=0,
+            trend=0.5,
+            volatility=0.5,
+            momentum=0.5,
+            breadth=0.5,
+            liquidity=0.5,
+            volume_pressure=0.5,
+            data_source="MOCK",
+            data_status="STALE",
+            timestamp=_now_iso(),
+        )
+
+    trend = mean(item.trend for item in items)
+    volatility = mean(item.volatility for item in items)
+    momentum = mean(item.momentum for item in items)
+    breadth = mean(item.breadth for item in items)
+    liquidity = mean(item.liquidity for item in items)
+    volume_pressure = mean(item.volume_pressure for item in items)
+    data_source = "+".join(sorted({item.data_source for item in items}))
+    data_status = "LIVE" if all(item.data_status == "LIVE" for item in items) else "STALE"
+    timestamp = max(item.timestamp for item in items)
+    return MarketData(
+        iteration=0,
+        trend=round(trend, 4),
+        volatility=round(volatility, 4),
+        momentum=round(momentum, 4),
+        breadth=round(breadth, 4),
+        liquidity=round(liquidity, 4),
+        volume_pressure=round(volume_pressure, 4),
+        data_source=data_source,
+        data_status=data_status,
+        timestamp=timestamp,
+    )
+
+
+def _build_symbol_capital_state(
+    overall_capital_state: CapitalState,
+    symbol_weight: float,
+    symbol_market_state: MarketState,
+) -> CapitalState:
+    position_multiplier = _clamp(
+        overall_capital_state.position_multiplier * (0.82 + 0.68 * symbol_weight),
+        0.15,
+        1.25,
+    )
+    risk_budget = _clamp(
+        overall_capital_state.risk_budget * (0.90 + 0.10 * (1.0 - symbol_weight)),
+        0.05,
+        0.35,
+    )
+    estimated_exposure = _clamp(symbol_weight * position_multiplier * (0.90 + 0.10 * symbol_market_state.structure_strength), 0.0, 0.75)
+    normalized_exposure = _clamp(estimated_exposure, 0.0, 0.35)
+    exposure_warning = estimated_exposure > 0.35
+    notes = list(overall_capital_state.notes)
+    if exposure_warning:
+        notes.append("Portfolio weight normalization flagged a concentration risk.")
+    return CapitalState(
+        position_multiplier=round(position_multiplier, 4),
+        risk_budget=round(risk_budget, 4),
+        estimated_exposure=round(estimated_exposure, 4),
+        normalized_exposure=round(normalized_exposure, 4),
+        exposure_warning=exposure_warning,
+        notes=tuple(notes),
+    )
+
+
 def _run_cycle(
     iteration: int,
     feed: MarketFeed,
@@ -574,6 +709,136 @@ def _run_cycle(
     )
 
 
+def _print_portfolio_summary(result: PortfolioRunResult) -> None:
+    _print_section("Portfolio Universe:")
+    _print_key_value("symbols", ", ".join(result.universe))
+    _print_key_value("data_status", result.overall_market_data.data_status)
+    _print_key_value("data_source", result.overall_market_data.data_source)
+
+    _print_section("Market State:")
+    _print_key_value("regime", result.overall_market_state.regime)
+    _print_key_value("trend", f"{result.overall_market_state.trend:.4f}")
+    _print_key_value("volatility", f"{result.overall_market_state.volatility:.4f}")
+    _print_key_value("momentum", f"{result.overall_market_state.momentum:.4f}")
+    _print_key_value("volatility_state", result.overall_market_state.volatility_state)
+    _print_key_value("structure_strength", f"{result.overall_market_state.structure_strength:.4f}")
+    _print_key_value("confidence", f"{result.overall_market_state.confidence:.4f}")
+    _print_key_value("reason", result.overall_market_state.reason)
+
+    _print_section("Capital State:")
+    _print_key_value("position_multiplier", f"{result.capital_state.position_multiplier:.4f}")
+    _print_key_value("risk_budget", f"{result.capital_state.risk_budget:.4f}")
+    _print_key_value("estimated_exposure", f"{result.capital_state.estimated_exposure:.4f}")
+    _print_key_value("normalized_exposure", f"{result.capital_state.normalized_exposure:.4f}")
+    _print_key_value("exposure_warning", result.capital_state.exposure_warning)
+
+    _print_section("Ranked Symbols:")
+    for item in result.ranked_symbols:
+        weight = next((entry.weight for entry in result.weights if entry.symbol == item.symbol), 0.0)
+        print(
+            f"{item.rank}. {item.symbol}"
+            f"\talpha={item.alpha_score:.2f}"
+            f"\traw={item.raw_score:.2f}"
+            f"\tweight={weight:.4f}"
+            f"\tdata={item.data_source}"
+            f"\tstatus={item.data_status}"
+        )
+
+    _print_section("Per-Symbol Decisions:")
+    for item in result.decisions:
+        print(
+            f"{item.rank}. {item.symbol}"
+            f"\talpha={item.alpha_score:.2f}"
+            f"\tweight={item.portfolio_weight:.4f}"
+            f"\tregime={item.market_state.regime}"
+            f"\taction={item.decision.action}"
+            f"\tfinal={item.final_decision.action}"
+            f"\tsize={item.final_decision.size:.4f}"
+            f"\tdata={item.data_status}"
+        )
+        if item.issues:
+            issue_text = "; ".join(f"{issue.code}:{issue.severity}" for issue in item.issues)
+            print(f"    issues={issue_text}")
+
+    print()
+
+
+def _run_portfolio_cycle(
+    iteration: int,
+    symbols: Iterable[str],
+    data_engine: MultiSymbolDataEngine,
+    brain: MarketBrain,
+    controller: CapitalController,
+    decision_engine: DecisionEngine,
+    diagnoser: Diagnoser,
+    safety_guard: SafetyGuard,
+    logger: PipelineLogger,
+    ranker: AlphaRanker,
+    allocator: PortfolioAllocator,
+) -> PortfolioRunResult:
+    symbol_snapshots = tuple(data_engine.fetch_symbols(symbols))
+    overall_market_data = _aggregate_market_data(symbol_snapshots)
+    overall_market_state = brain.analyze(overall_market_data)
+    capital_state = controller.adjust(overall_market_state)
+    ranked = tuple(ranker.rank(symbol_snapshots))
+    weights = tuple(allocator.allocate(ranked))
+    weight_by_symbol = {item.symbol: item.weight for item in weights}
+    symbol_snapshot_by_symbol = {item.symbol: item for item in symbol_snapshots}
+
+    decisions: list[PortfolioDecisionRecord] = []
+    for ranked_item in ranked:
+        snapshot = symbol_snapshot_by_symbol[ranked_item.symbol]
+        market_data = _market_data_from_snapshot(snapshot, iteration=iteration)
+        symbol_market_state = brain.analyze(market_data)
+        symbol_weight = weight_by_symbol.get(ranked_item.symbol, 0.0)
+        symbol_capital_state = _build_symbol_capital_state(capital_state, symbol_weight, symbol_market_state)
+        decision = decision_engine.decide(symbol_market_state, symbol_capital_state)
+        issues = tuple(diagnoser.diagnose(symbol_market_state, symbol_capital_state, decision))
+        final_decision = safety_guard.apply(symbol_market_state, symbol_capital_state, decision, issues)
+        decisions.append(
+            PortfolioDecisionRecord(
+                symbol=ranked_item.symbol,
+                rank=ranked_item.rank,
+                alpha_score=ranked_item.alpha_score,
+                portfolio_weight=round(symbol_weight, 6),
+                market_state=symbol_market_state,
+                capital_state=symbol_capital_state,
+                decision=decision,
+                issues=issues,
+                final_decision=final_decision,
+                data_source=ranked_item.data_source,
+                data_status=ranked_item.data_status,
+            )
+        )
+
+    result = PortfolioRunResult(
+        timestamp=overall_market_data.timestamp,
+        universe=tuple(symbols),
+        symbol_snapshots=symbol_snapshots,
+        ranked_symbols=ranked,
+        weights=weights,
+        overall_market_data=overall_market_data,
+        overall_market_state=overall_market_state,
+        capital_state=capital_state,
+        decisions=tuple(decisions),
+    )
+
+    logger.record(
+        {
+            "iteration": iteration,
+            "timestamp": result.timestamp,
+            "universe": list(result.universe),
+            "overall_market_data": asdict(result.overall_market_data),
+            "overall_market_state": asdict(result.overall_market_state),
+            "capital_state": asdict(result.capital_state),
+            "ranked_symbols": [asdict(item) for item in result.ranked_symbols],
+            "weights": [asdict(item) for item in result.weights],
+            "decisions": [asdict(item) for item in result.decisions],
+        }
+    )
+    return result
+
+
 def run_once() -> CycleResult:
     feed = AKShareMarketFeed()
     brain = MarketBrain()
@@ -583,6 +848,34 @@ def run_once() -> CycleResult:
     safety_guard = SafetyGuard()
     logger = PipelineLogger(Path("reports") / "production" / "v12_pipeline.log")
     return _run_cycle(0, feed, brain, controller, decision_engine, diagnoser, safety_guard, logger)
+
+
+def run_portfolio_once(symbols: Iterable[str] | None = None) -> PortfolioRunResult:
+    symbol_list = tuple(symbols or DEFAULT_SYMBOLS)
+    data_engine = MultiSymbolDataEngine()
+    brain = MarketBrain()
+    controller = CapitalController()
+    decision_engine = DecisionEngine()
+    diagnoser = Diagnoser()
+    safety_guard = SafetyGuard()
+    logger = PipelineLogger(Path("reports") / "production" / "v12_portfolio_pipeline.log")
+    ranker = AlphaRanker()
+    allocator = PortfolioAllocator()
+    result = _run_portfolio_cycle(
+        0,
+        symbol_list,
+        data_engine,
+        brain,
+        controller,
+        decision_engine,
+        diagnoser,
+        safety_guard,
+        logger,
+        ranker,
+        allocator,
+    )
+    _print_portfolio_summary(result)
+    return result
 
 
 def run_loop(iterations: int | None, interval_seconds: float) -> None:
@@ -602,11 +895,51 @@ def run_loop(iterations: int | None, interval_seconds: float) -> None:
             time.sleep(max(0.1, interval_seconds))
 
 
+def run_portfolio_loop(symbols: Iterable[str] | None, iterations: int | None, interval_seconds: float) -> None:
+    symbol_list = tuple(symbols or DEFAULT_SYMBOLS)
+    data_engine = MultiSymbolDataEngine()
+    brain = MarketBrain()
+    controller = CapitalController()
+    decision_engine = DecisionEngine()
+    diagnoser = Diagnoser()
+    safety_guard = SafetyGuard()
+    logger = PipelineLogger(Path("reports") / "production" / "v12_portfolio_pipeline.log")
+    ranker = AlphaRanker()
+    allocator = PortfolioAllocator()
+
+    cycle = 0
+    while iterations is None or cycle < iterations:
+        result = _run_portfolio_cycle(
+            cycle,
+            symbol_list,
+            data_engine,
+            brain,
+            controller,
+            decision_engine,
+            diagnoser,
+            safety_guard,
+            logger,
+            ranker,
+            allocator,
+        )
+        _print_portfolio_summary(result)
+        cycle += 1
+        if iterations is None or cycle < iterations:
+            time.sleep(max(0.1, interval_seconds))
+
+
 def build_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="V12 single-file trading pipeline")
     parser.add_argument("--loop", action="store_true", help="Run continuously instead of a single cycle.")
     parser.add_argument("--iterations", type=int, default=DEFAULT_ITERATIONS, help="Number of cycles to run when looping.")
     parser.add_argument("--interval", type=float, default=DEFAULT_INTERVAL_SECONDS, help="Seconds between cycles when looping.")
+    parser.add_argument(
+        "--symbols",
+        type=str,
+        default=os.environ.get("V12_SYMBOLS", ",".join(DEFAULT_SYMBOLS)),
+        help="Comma-separated A-share symbols for the portfolio engine.",
+    )
+    parser.add_argument("--single", action="store_true", help="Run the legacy single-symbol mode.")
     return parser
 
 
@@ -615,11 +948,20 @@ def main() -> int:
     args = parser.parse_args()
 
     loop_requested = args.loop or os.environ.get("V12_LOOP", "0") == "1"
-    if loop_requested:
-        iterations = args.iterations if args.iterations > 0 else None
-        run_loop(iterations, args.interval)
+    symbols = _parse_symbols(args.symbols)
+
+    if args.single:
+        if loop_requested:
+            iterations = args.iterations if args.iterations > 0 else None
+            run_loop(iterations, args.interval)
+        else:
+            run_once()
     else:
-        run_once()
+        if loop_requested:
+            iterations = args.iterations if args.iterations > 0 else None
+            run_portfolio_loop(symbols, iterations, args.interval)
+        else:
+            run_portfolio_once(symbols)
     return 0
 
 
