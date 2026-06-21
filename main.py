@@ -32,6 +32,7 @@ from diagnosis.bias_detector import BiasDetector
 from diagnosis.repair_engine import RepairEngine
 from diagnosis.v12_7_health_monitor import HealthMonitor
 from logs.trade_logger import TradeLogger
+from repair_loop.repair_orchestrator import RepairOrchestrator
 from market.v12_1_structure_engine import analyze_market_structure
 from market.v12_2_capital_flow_engine import V122CapitalFlowEngine
 from market.v12_3_narrative_engine import V123NarrativeEngine
@@ -471,6 +472,53 @@ def main() -> None:
             f"{suggestion.action}\t"
             f"{suggestion.expected_effect}"
         )
+
+    repair_orchestrator = RepairOrchestrator()
+    current_agent_weights = {}
+    if v11_decisions:
+        current_agent_weights = dict(v11_decisions[0].get("current_agent_weights", {}) or {})
+    repair_loop_report = repair_orchestrator.run(
+        health=health_report,
+        biases=bias_findings,
+        suggestions=repair_suggestions,
+        current_state={
+            "market_state": orchestration.market_state,
+            "capital_state": capital_state,
+            "learning_context": learning_context,
+            "agent_weights": current_agent_weights,
+            "decisions": final_decisions,
+            "v11_decisions": v11_decisions,
+        },
+        pre_fix_backtest=v126_result,
+    )
+
+    print("")
+    print("V12.8 Semi-Automated Repair Loop:")
+    print(f"approval_status\t{repair_loop_report.approval.status}")
+    print(f"approval_reason\t{repair_loop_report.approval.reason}")
+    print("detected_issues")
+    for finding in repair_loop_report.biases:
+        print(f"- {finding.bias_name}: {finding.message}")
+    print("suggested_fixes")
+    for suggestion in repair_loop_report.suggestions:
+        print(f"- {suggestion.priority}:{suggestion.severity}:{suggestion.title}")
+    print("applied_changes")
+    if repair_loop_report.applied_patches:
+        for patch in repair_loop_report.applied_patches:
+            print(f"- {patch.patch_id}: {patch.target} -> {patch.after}")
+    else:
+        print("- none")
+    print("post_fix_performance_comparison")
+    for key, value in repair_loop_report.comparison.items():
+        print(f"{key}\t{value}")
+    if repair_loop_report.post_fix_backtest is not None:
+        print(f"post_fix_total_return\t{repair_loop_report.post_fix_backtest.total_return:.4f}")
+        print(f"post_fix_max_drawdown\t{repair_loop_report.post_fix_backtest.max_drawdown:.4f}")
+        print(f"post_fix_win_rate\t{repair_loop_report.post_fix_backtest.win_rate:.4f}")
+    else:
+        print("post_fix_total_return\tPENDING_APPROVAL")
+        print("post_fix_max_drawdown\tPENDING_APPROVAL")
+        print("post_fix_win_rate\tPENDING_APPROVAL")
 
 
 if __name__ == "__main__":
