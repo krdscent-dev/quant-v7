@@ -17,7 +17,12 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
-from typing import Iterable
+from typing import Iterable, Protocol
+
+try:
+    import akshare as ak  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    ak = None
 
 
 SEED = int(os.environ.get("V12_SEED", "42"))
@@ -46,6 +51,8 @@ class MarketData:
     breadth: float
     liquidity: float
     volume_pressure: float
+    data_source: str
+    data_status: str
     timestamp: str
 
 
@@ -106,6 +113,11 @@ class CycleResult:
     final_decision: FinalDecision
 
 
+class MarketFeed(Protocol):
+    def sample(self, iteration: int) -> MarketData:
+        ...
+
+
 class MockMarketFeed:
     """Deterministic mock market feed."""
 
@@ -129,8 +141,146 @@ class MockMarketFeed:
             breadth=round(breadth, 4),
             liquidity=round(liquidity, 4),
             volume_pressure=round(volume_pressure, 4),
+            data_source="MOCK",
+            data_status="STALE",
             timestamp=_now_iso(),
         )
+
+
+class AKShareMarketFeed:
+    """Real A-share market feed with cache fallback."""
+
+    def __init__(self, symbol: str = "sh000300", cache_path: Path | None = None) -> None:
+        self.symbol = symbol
+        self.cache_path = cache_path or (Path("reports") / "cache" / "v12_akshare_csi300_cache.json")
+        self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+        self._mock_fallback = MockMarketFeed()
+
+    def _load_cached_market_data(self) -> MarketData | None:
+        if not self.cache_path.exists():
+            return None
+        try:
+            payload = json.loads(self.cache_path.read_text(encoding="utf-8"))
+            return MarketData(**payload)
+        except Exception:
+            return None
+
+    def _save_cached_market_data(self, market_data: MarketData) -> None:
+        try:
+            self.cache_path.write_text(json.dumps(asdict(market_data), ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        except Exception:
+            pass
+
+    @staticmethod
+    def _column_name(columns: Iterable[str], candidates: Iterable[str]) -> str | None:
+        lowered = {str(column).strip().lower(): str(column) for column in columns}
+        for candidate in candidates:
+            if candidate.lower() in lowered:
+                return lowered[candidate.lower()]
+        return None
+
+    def _build_from_dataframe(self, frame: object, iteration: int) -> MarketData:
+        if not hasattr(frame, "tail") or not hasattr(frame, "__len__"):
+            raise ValueError("AKShare data is not tabular.")
+
+        if len(frame) == 0:
+            raise ValueError("AKShare returned empty data.")
+
+        columns = list(getattr(frame, "columns", []))
+        close_col = self._column_name(columns, ["close", "收盘", "收盘价"])
+        high_col = self._column_name(columns, ["high", "最高", "最高价"])
+        low_col = self._column_name(columns, ["low", "最低", "最低价"])
+        date_col = self._column_name(columns, ["date", "日期", "datetime", "时间"])
+        volume_col = self._column_name(columns, ["volume", "成交量", "vol"])
+
+        if not close_col or not high_col or not low_col:
+            raise ValueError("Required OHLC columns are missing from AKShare data.")
+
+        window = frame.tail(20)
+        rows = window.to_dict("records")
+        latest = rows[-1]
+        previous = rows[-2] if len(rows) >= 2 else latest
+
+        close = float(latest[close_col])
+        high = float(latest[high_col])
+        low = float(latest[low_col])
+        prev_close = float(previous[close_col]) if previous.get(close_col) is not None else close
+
+        moving_average = sum(float(row[close_col]) for row in rows) / max(len(rows), 1)
+        trend_ratio = close / moving_average if moving_average else 1.0
+        volatility_raw = (high - low) / close if close else 0.0
+        momentum_raw = close / prev_close if prev_close else 1.0
+        volume_value = float(latest[volume_col]) if volume_col and latest.get(volume_col) is not None else float(len(rows))
+        if volume_col:
+            volume_samples = [float(row[volume_col]) for row in rows if row.get(volume_col) is not None]
+            volume_baseline = mean(volume_samples) if volume_samples else volume_value
+        else:
+            volume_baseline = volume_value
+
+        trend = _clamp((trend_ratio - 0.95) / 0.10, 0.0, 1.0)
+        volatility = _clamp(volatility_raw / 0.05, 0.0, 1.0)
+        momentum = _clamp((momentum_raw - 0.99) / 0.03, 0.0, 1.0)
+        breadth = _clamp(0.45 + 0.35 * trend - 0.25 * volatility + 0.10 * momentum, 0.0, 1.0)
+        liquidity = _clamp(0.50 + 0.25 * (1.0 - volatility) + 0.15 * momentum + 0.10 * _clamp(volume_value / max(volume_baseline, 1.0), 0.0, 2.0) / 2.0, 0.0, 1.0)
+        volume_pressure = _clamp(0.40 + 0.40 * trend - 0.30 * volatility + 0.10 * momentum, 0.0, 1.0)
+
+        if date_col and latest.get(date_col) is not None:
+            timestamp = str(latest[date_col])
+        else:
+            timestamp = _now_iso()
+
+        return MarketData(
+            iteration=iteration,
+            trend=round(trend, 4),
+            volatility=round(volatility, 4),
+            momentum=round(momentum, 4),
+            breadth=round(breadth, 4),
+            liquidity=round(liquidity, 4),
+            volume_pressure=round(volume_pressure, 4),
+            data_source="AKSHARE",
+            data_status="LIVE",
+            timestamp=timestamp,
+        )
+
+    def _fetch_real_market_data(self, iteration: int) -> MarketData:
+        if ak is None:
+            raise RuntimeError("akshare is not installed.")
+        frame = ak.stock_zh_index_daily(symbol=self.symbol)
+        market_data = self._build_from_dataframe(frame, iteration)
+        self._save_cached_market_data(market_data)
+        return market_data
+
+    def sample(self, iteration: int) -> MarketData:
+        try:
+            return self._fetch_real_market_data(iteration)
+        except Exception:
+            cached = self._load_cached_market_data()
+            if cached is not None:
+                return MarketData(
+                    iteration=iteration,
+                    trend=cached.trend,
+                    volatility=cached.volatility,
+                    momentum=cached.momentum,
+                    breadth=cached.breadth,
+                    liquidity=cached.liquidity,
+                    volume_pressure=cached.volume_pressure,
+                    data_source=cached.data_source if cached.data_source else "AKSHARE",
+                    data_status="STALE",
+                    timestamp=cached.timestamp,
+                )
+            fallback = self._mock_fallback.sample(iteration)
+            return MarketData(
+                iteration=iteration,
+                trend=fallback.trend,
+                volatility=fallback.volatility,
+                momentum=fallback.momentum,
+                breadth=fallback.breadth,
+                liquidity=fallback.liquidity,
+                volume_pressure=fallback.volume_pressure,
+                data_source="MOCK",
+                data_status="STALE",
+                timestamp=fallback.timestamp,
+            )
 
 
 class MarketBrain:
@@ -343,7 +493,7 @@ def _print_key_value(key: str, value: object) -> None:
 
 def _run_cycle(
     iteration: int,
-    feed: MockMarketFeed,
+    feed: MarketFeed,
     brain: MarketBrain,
     controller: CapitalController,
     decision_engine: DecisionEngine,
@@ -379,6 +529,8 @@ def _run_cycle(
     _print_key_value("volatility_state", market_state.volatility_state)
     _print_key_value("structure_strength", f"{market_state.structure_strength:.4f}")
     _print_key_value("confidence", f"{market_state.confidence:.4f}")
+    _print_key_value("data_source", market_data.data_source)
+    _print_key_value("data_status", market_data.data_status)
     _print_key_value("reason", market_state.reason)
 
     _print_section("Capital State:")
@@ -423,7 +575,7 @@ def _run_cycle(
 
 
 def run_once() -> CycleResult:
-    feed = MockMarketFeed()
+    feed = AKShareMarketFeed()
     brain = MarketBrain()
     controller = CapitalController()
     decision_engine = DecisionEngine()
@@ -434,7 +586,7 @@ def run_once() -> CycleResult:
 
 
 def run_loop(iterations: int | None, interval_seconds: float) -> None:
-    feed = MockMarketFeed()
+    feed = AKShareMarketFeed()
     brain = MarketBrain()
     controller = CapitalController()
     decision_engine = DecisionEngine()
