@@ -932,245 +932,309 @@ def _generate_weekly_report(base_dir: Path) -> Path:
     workflow_sections = _workflow_sections(rows, portfolio_snapshot, position_snapshot, risk_report, rebalance_plan, backtest_payload)
     quality_sections = _quality_sections()
     audit_sections = _audit_sections()
+    growth_watchlist_rows, new_material_rows, _ = _growth_watchlist_sections(rows, base_dir)
+    sector_rows = _sector_summary_rows(rows, growth_watchlist_rows)
+    theme_rows = _theme_ranking_rows(growth_watchlist_rows)
+    market_regime_rows = _market_regime_summary(sector_rows, theme_rows, portfolio_snapshot, risk_report)
+    market_regime_lookup = {item["item"]: item["value"] for item in market_regime_rows}
+    stability_score = float(quality_sections["quality_report"]["passed_count"]) / max(
+        float(quality_sections["quality_report"]["passed_count"] + quality_sections["quality_report"]["failed_count"]),
+        1.0,
+    )
+    diagnosis = {
+        "health": {
+            "status": "CRITICAL" if risk_report.get("risk_level") in {"HIGH", "CRITICAL"} else ("WATCH" if risk_report.get("warnings") else "STABLE"),
+            "score": round(stability_score, 4),
+            "warnings": list(risk_report.get("warnings", []))[:5],
+        },
+        "stability": {
+            "status": "STABLE" if stability_score >= 0.7 else "WATCH",
+            "warnings": list(quality_sections["quality_report"].get("warnings", []))[:5],
+        },
+    }
+    capital_flow = {
+        "top_inflow_sectors": [item["sector"] for item in sorted(sector_rows, key=lambda value: value["current_score"], reverse=True)[:2] if item["current_score"] >= 0],
+        "top_outflow_sectors": [item["sector"] for item in sorted(sector_rows, key=lambda value: value["current_score"])[:2] if item["current_score"] <= 0],
+        "flow_strength": round(min(1.0, max(0.0, sum(item["current_score"] for item in sector_rows[:3]) / 100.0)), 4),
+        "leader_concentration": round(min(1.0, max(0.0, (max((item["current_score"] for item in sector_rows), default=0.0) / max(sum(item["current_score"] for item in sector_rows) or 1.0, 1.0)))), 4),
+        "rotation_signal": market_regime_lookup.get("一句话市场结论", "UNKNOWN"),
+    }
+    narrative = {
+        "active_narratives": [item["theme"] for item in theme_rows[:3]],
+        "narrative_strength": round(min(1.0, max(0.0, sum(item["current_score"] for item in theme_rows[:3]) / 100.0)), 4),
+        "narrative_phase": "EMERGING" if sum(item["current_score"] for item in theme_rows[:3]) < 30 else ("EXPANSION" if sum(item["current_score"] for item in theme_rows[:3]) < 60 else ("PEAK" if sum(item["current_score"] for item in theme_rows[:3]) < 80 else "DECLINE")),
+        "supporting_sectors": [item["sector"] for item in sector_rows[:3]],
+    }
+    cycle_state = {
+        "liquidity_cycle": "EXPANSION" if market_regime_lookup.get("风险偏好", "中性") == "上升" else "CONTRACTION" if market_regime_lookup.get("风险偏好", "中性") == "下降" else "NEUTRAL",
+        "sentiment_cycle": "GREED" if market_regime_lookup.get("市场风格", "混合") == "成长" else ("PANIC" if risk_report.get("risk_level") in {"HIGH", "CRITICAL"} else "NEUTRAL"),
+        "industry_cycle": "EARLY_GROWTH" if theme_rows and float(theme_rows[0]["current_score"]) >= 20 else "MATURITY",
+        "unified_cycle_state": "RISK_ON" if market_regime_lookup.get("风险偏好", "中性") == "上升" and risk_report.get("risk_level") not in {"HIGH", "CRITICAL"} else ("RISK_OFF" if risk_report.get("risk_level") in {"HIGH", "CRITICAL"} else "TRANSITION"),
+    }
 
     lines: list[str] = []
     lines.append("# Weekly Research Report")
     lines.append("")
-    lines.append("## 1. 本周重点主题")
-    for theme, count in focus:
-        lines.append(f"- {theme} ({count})")
+
+    market_state = "🟡 观察"
+    if risk_report.get("risk_level") in {"HIGH", "CRITICAL"}:
+        market_state = "🔴 风险"
+    elif any(item.get("action") in {"BUY", "ADD"} for item in rebalance_plan.get("actions", [])):
+        market_state = "🟢 进攻"
+
+    core_count = len(portfolio_snapshot.get("core_candidates", [])) + len(portfolio_snapshot.get("satellite_candidates", []))
+    watch_only = "是" if core_count == 0 else "否"
+    has_buy = "是" if core_count > 0 else "否"
+    cash_ratio = "100.0%" if not portfolio_snapshot.get("ranked_candidates") else f"{position_snapshot.get('remaining_cash', 0.0) * 100:.1f}%"
+    top_symbol = rows[0] if rows else {}
+    final_recommendation = "OBSERVE"
+    if float(backtest_payload["backtest_summary"]["total_return"]) > 0 and float(quality_sections["quality_report"]["rc1_ready"]) > 0:
+        final_recommendation = "GO"
+    elif float(backtest_payload["backtest_metrics"]["sharpe_ratio"]) < 0.0:
+        final_recommendation = "NO_GO"
+    elif float(backtest_payload["backtest_summary"]["max_drawdown"]) > 0.2:
+        final_recommendation = "OBSERVE"
+
+    lines.append("## 1. Market Interpretation")
+    lines.append("| Item | Value | Status |")
+    lines.append("|---|---:|---|")
+    lines.append(f"| 本周市场状态 | {market_state} | {market_state} |")
+    lines.append(f"| 核心结论 | {str(top_symbol.get('research_conclusion', '本周以观察为主'))[:120]} | 🟡 |")
+    lines.append(f"| 风险等级 | {risk_report.get('risk_level', 'LOW')} | {'🟢' if risk_report.get('risk_level', 'LOW') == 'LOW' else '🟡'} |")
+    lines.append(f"| 现金比例 | {cash_ratio} | 🟢 |")
+    lines.append(f"| 本周是否有买入候选 | {has_buy} | {'🟢' if has_buy == '是' else '⚪'} |")
+    lines.append(f"| 本周是否只建议观察 | {watch_only} | {'🟡' if watch_only == '是' else '🟢'} |")
     lines.append("")
-    lines.append("## 2. Strategic Score Top10")
+
+    lines.append("## 2. Capital Flow Analysis")
+    lines.append("| Item | Value |")
+    lines.append("|---|---|")
+    lines.append(f"| Top inflow sectors | {', '.join(capital_flow.get('top_inflow_sectors', [])) or 'none'} |")
+    lines.append(f"| Top outflow sectors | {', '.join(capital_flow.get('top_outflow_sectors', [])) or 'none'} |")
+    lines.append(f"| Rotation signal | {capital_flow.get('rotation_signal', 'UNKNOWN')} |")
+    lines.append(f"| Leader concentration | {float(capital_flow.get('leader_concentration', 0.0)):.4f} |")
+    lines.append("")
+
+    lines.append("## 3. Narrative Analysis")
+    lines.append("| Item | Value |")
+    lines.append("|---|---|")
+    lines.append(f"| Active narratives | {', '.join(narrative.get('active_narratives', [])) or 'none'} |")
+    lines.append(f"| Narrative strength | {float(narrative.get('narrative_strength', 0.0)):.4f} |")
+    lines.append(f"| Narrative phase | {narrative.get('narrative_phase', 'UNKNOWN')} |")
+    lines.append(f"| Supporting sectors | {', '.join(narrative.get('supporting_sectors', [])) or 'none'} |")
+    lines.append("")
+
+    lines.append("## 4. Cycle Position")
+    lines.append("| Item | Value |")
+    lines.append("|---|---|")
+    lines.append(f"| Liquidity cycle | {cycle_state.get('liquidity_cycle', 'UNKNOWN')} |")
+    lines.append(f"| Sentiment cycle | {cycle_state.get('sentiment_cycle', 'NEUTRAL')} |")
+    lines.append(f"| Industry cycle | {cycle_state.get('industry_cycle', 'MATURITY')} |")
+    lines.append(f"| Unified cycle state | {cycle_state.get('unified_cycle_state', 'TRANSITION')} |")
+    lines.append("")
+
+    lines.append("## 5. Strategy Performance")
+    lines.append("| Item | Value |")
+    lines.append("|---|---:|")
+    lines.append(f"| Strategic score | {float(rows[0].get('strategic_score', 0.0)):.2f} |" if rows else "| Strategic score | 0.00 |")
+    lines.append(f"| Backtest return | {backtest_payload['backtest_summary']['total_return']:.4f} |")
+    lines.append(f"| Backtest drawdown | {backtest_payload['backtest_summary']['max_drawdown']:.4f} |")
+    lines.append(f"| Backtest win rate | {backtest_payload['backtest_metrics']['win_rate']:.4f} |")
+    lines.append("")
+
+    lines.append("## 6. Risk Evaluation")
+    confidence_risk = len([row for row in rows if float(row.get("confidence_score", 0.0)) < 0.65])
+    overfit_risk = 1.0 - float(backtest_payload["backtest_metrics"]["win_rate"])
+    lines.append("| Item | Value |")
+    lines.append("|---|---:|")
+    lines.append(f"| Risk score | {float(risk_report.get('total_risk_score', 0.0)):.4f} |")
+    lines.append(f"| Overfitting risk | {overfit_risk:.4f} |")
+    lines.append(f"| Data confidence risk | {confidence_risk} |")
+    lines.append(f"| Need more cash | {'是' if confidence_risk > 0 or risk_report.get('risk_level') in {'HIGH', 'CRITICAL'} else '否'} |")
+    lines.append("")
+
+    lines.append("## 7. System Stability")
+    lines.append("| Item | Value |")
+    lines.append("|---|---:|")
+    lines.append(f"| Stability score | {float(quality_sections['quality_report']['passed_count']) / max(float(quality_sections['quality_report']['passed_count'] + quality_sections['quality_report']['failed_count']), 1.0):.4f} |")
+    lines.append(f"| Health status | {diagnosis['health']['status']} |")
+    lines.append(f"| Stability status | {diagnosis['stability']['status']} |")
+    lines.append(f"| Workflow status | {workflow_sections['workflow_run']['final_status']} |")
+    lines.append(f"| Quality status | {quality_sections['rc1_status']} |")
+    lines.append(f"| Audit status | {audit_sections['audit_report']['overall_status']} |")
+    lines.append("")
+
+    lines.append("## 8. Final Recommendation")
+    lines.append("| Item | Value |")
+    lines.append("|---|---|")
+    lines.append(f"| Recommendation | {final_recommendation} |")
+    lines.append(f"| Confidence | {float(rows[0].get('confidence_score', 0.0)):.4f} |" if rows else "| Confidence | 0.0000 |")
+    lines.append(f"| Summary | {str(top_symbol.get('research_conclusion', '数据不足，建议观察'))[:160]} |")
+    lines.append("")
+
+    lines.append("## Appendix")
+    lines.append("### 01 Research Details")
     for rank, row in enumerate(rows[:10], start=1):
-        lines.append(
-            f"{rank}. {row['name']} ({row['company_code']}) - {row['theme']} - {row['strategic_score']:.2f}"
-        )
+        lines.append(f"- {rank}. {row['name']} ({row['company_code']}): {row['research_conclusion']}")
     lines.append("")
-    lines.append("## 3. Catalyst Changes")
-    if catalyst_changes:
-        for item in catalyst_changes:
-            lines.append(f"- {item}")
-    else:
-        lines.append("- 本周未见显著催化变化")
-    lines.append("")
-    lines.append("## 4. Order Confirmation Changes")
-    if order_changes:
-        for item in order_changes:
-            lines.append(f"- {item}")
-    else:
-        lines.append("- 本周未见显著订单验证变化")
-    lines.append("")
-    lines.append("## 5. Risk Alerts")
-    if risk_alerts:
-        for item in risk_alerts:
-            lines.append(f"- {item}")
-    else:
-        lines.append("- 暂无显著风险提示")
-    lines.append("")
-    lines.append("## 6. Watchlist Changes")
-    if watchlist_changes:
-        for item in watchlist_changes:
-            lines.append(f"- {item}")
-    else:
-        lines.append("- 重点观察池保持稳定")
-    lines.append("")
-    lines.append("## 7. Research Conclusions")
-    for rank, row in enumerate(rows[:10], start=1):
-        lines.append(f"- {rank}. {row['name']}: {row['research_conclusion']}")
-    lines.append("")
-    lines.append("## 8. Evidence Summary")
+    lines.append("### 02 Evidence Summary")
     for rank, row in enumerate(rows[:5], start=1):
         evidence = row.get("evidence_summary", {})
         lines.append(f"- {rank}. {row['name']} overall_confidence={evidence.get('overall_confidence', 0.0):.2f}")
     lines.append("")
-    lines.append("## 9. Score Explanation")
+    lines.append("### 03 Score Explanation")
     for rank, row in enumerate(rows[:5], start=1):
         score_explanation = row.get("score_explanation", {})
         lines.append(f"- {rank}. {row['name']}: {score_explanation.get('score_explanation', score_explanation)}")
     lines.append("")
-    lines.append("## 10. Decision Explanation")
+    lines.append("### 04 Decision Explanation")
     for rank, row in enumerate(rows[:5], start=1):
         decision_explanation = row.get("decision_explanation", {})
         lines.append(f"- {rank}. {row['name']}: {decision_explanation.get('decision_explanation', decision_explanation)}")
     lines.append("")
-    lines.append("## 11. Provider Trust Ranking")
+    lines.append("### 05 Provider Trust Ranking")
     for rank, item in enumerate(trust_scores, start=1):
         lines.append(f"- {rank}. {item['provider_name']} {item['overall_score']:.2f}")
     lines.append("")
-    lines.append("## 12. Trust Warnings")
-    trust_warnings = [f"{item['provider_name']} trust={item['overall_score']:.2f}" for item in trust_scores if item["overall_score"] < 0.9]
-    if trust_warnings:
-        for item in trust_warnings:
+    lines.append("### 06 Portfolio Snapshot")
+    lines.append(f"- {portfolio_snapshot.get('summary', '')}")
+    lines.append("")
+    lines.append("### 07 Portfolio Ranking")
+    for item in portfolio_snapshot.get("ranked_candidates", [])[:10]:
+        lines.append(f"- {item['rank']}. {item['symbol']} {item['bucket']} total={item['total_score']:.2f} conf={item['confidence_score']:.2f}")
+    lines.append("")
+    lines.append("### 08 Position Snapshot")
+    lines.append(f"- {position_snapshot.get('allocation_summary', '')}")
+    lines.append("")
+    lines.append("### 09 Risk Warnings")
+    if risk_report.get("warnings"):
+        for item in risk_report["warnings"]:
             lines.append(f"- {item}")
     else:
         lines.append("- none")
     lines.append("")
-    lines.append("## 13. Top Confidence Factors")
-    if top_confidence:
-        lines.extend(top_confidence)
-    else:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 14. Lowest Confidence Factors")
-    if low_confidence:
-        lines.extend(low_confidence)
-    else:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 15. Confidence Warnings")
-    if confidence_warnings:
-        lines.extend(confidence_warnings)
-    else:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 16. Portfolio Snapshot")
-    lines.append(f"- {portfolio_snapshot.get('summary', '')}")
-    lines.append("")
-    lines.append("## 17. Portfolio Ranking")
-    for item in portfolio_snapshot.get("ranked_candidates", [])[:10]:
-        lines.append(
-            f"- {item['rank']}. {item['symbol']} {item['bucket']} total={item['total_score']:.2f} conf={item['confidence_score']:.2f}"
-        )
-    lines.append("")
-    lines.append("## 18. Core Candidates")
-    for item in portfolio_snapshot.get("core_candidates", []):
-        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
-    if not portfolio_snapshot.get("core_candidates"):
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 19. Satellite Candidates")
-    for item in portfolio_snapshot.get("satellite_candidates", []):
-        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
-    if not portfolio_snapshot.get("satellite_candidates"):
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 20. Watchlist Candidates")
-    for item in portfolio_snapshot.get("watchlist_candidates", []):
-        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
-    if not portfolio_snapshot.get("watchlist_candidates"):
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 21. Excluded Candidates")
-    for item in portfolio_snapshot.get("excluded_candidates", []):
-        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
-    if not portfolio_snapshot.get("excluded_candidates"):
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 22. Position Snapshot")
-    lines.append(f"- {position_snapshot.get('allocation_summary', '')}")
-    lines.append("")
-    lines.append("## 23. Recommended Positions")
-    for item in position_snapshot.get("recommendations", [])[:10]:
-        lines.append(
-            f"- {item['symbol']} {item['bucket']} {item['recommended_weight'] * 100:.1f}%"
-        )
-    if not position_snapshot.get("recommendations"):
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 24. Top Allocations")
-    top_allocations = sorted(position_snapshot.get("recommendations", []), key=lambda item: item.get("recommended_weight", 0.0), reverse=True)[:5]
-    for item in top_allocations:
-        lines.append(f"- {item['symbol']} {item['recommended_weight'] * 100:.1f}%")
-    if not top_allocations:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 25. Cash Remaining")
-    lines.append(f"- {position_snapshot.get('remaining_cash', 0.0) * 100:.1f}%")
-    lines.append("")
-    lines.append("## 26. Risk Report")
-    lines.append(f"- level={risk_report.get('risk_level', 'LOW')} score={risk_report.get('total_risk_score', 0.0):.2f}")
-    lines.append("")
-    lines.append("## 27. Risk Warnings")
-    for item in risk_report.get("warnings", []):
-        lines.append(f"- {item}")
-    if not risk_report.get("warnings"):
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 28. Risk Suggested Actions")
-    for item in risk_report.get("suggested_actions", []):
-        lines.append(f"- {item}")
-    if not risk_report.get("suggested_actions"):
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 29. Rebalance Plan")
-    lines.append(f"- {rebalance_plan.get('summary', '')}")
-    lines.append("")
-    lines.append("## 30. Rebalance Actions")
+    lines.append("### 10 Rebalance Actions")
     for item in rebalance_plan.get("actions", []):
-        lines.append(
-            f"- {item['priority']}. {item['symbol']} {item['action']} {item['current_weight'] * 100:.1f}% -> {item['target_weight'] * 100:.1f}%"
-        )
+        lines.append(f"- {item['priority']}. {item['symbol']} {item['action']} {item['current_weight'] * 100:.1f}% -> {item['target_weight'] * 100:.1f}%")
     if not rebalance_plan.get("actions"):
         lines.append("- none")
     lines.append("")
-    lines.append("## 31. Buy List")
-    buy_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") in {"BUY", "ADD"}]
-    for item in buy_list:
-        lines.append(f"- {item['symbol']} {item['action']} {item['target_weight'] * 100:.1f}%")
-    if not buy_list:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 32. Sell List")
-    sell_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") == "SELL"]
-    for item in sell_list:
-        lines.append(f"- {item['symbol']} SELL")
-    if not sell_list:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 33. Reduce List")
-    reduce_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") == "REDUCE"]
-    for item in reduce_list:
-        lines.append(f"- {item['symbol']} REDUCE")
-    if not reduce_list:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 34. Add List")
-    add_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") == "ADD"]
-    for item in add_list:
-        lines.append(f"- {item['symbol']} ADD")
-    if not add_list:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 35. Hold List")
-    hold_list = [item for item in rebalance_plan.get("actions", []) if item.get("action") in {"HOLD", "WATCH"}]
-    for item in hold_list:
-        lines.append(f"- {item['symbol']} {item['action']}")
-    if not hold_list:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 36. Backtest Result")
-    lines.append(f"- {backtest_report.get('period', '')}")
-    lines.append("")
-    lines.append("## 37. Backtest Summary")
+    lines.append("### 11 Backtest Summary")
     backtest_summary = backtest_payload["backtest_summary"]
     lines.append(f"- total_return: {backtest_summary['total_return']:.4f}")
     lines.append(f"- annualized_return: {backtest_summary['annualized_return']:.4f}")
     lines.append(f"- max_drawdown: {backtest_summary['max_drawdown']:.4f}")
     lines.append("")
-    lines.append("## 38. Backtest Metrics")
+    lines.append("### 12 Backtest Metrics")
     backtest_metrics = backtest_payload["backtest_metrics"]
     lines.append(f"- volatility: {backtest_metrics['volatility']:.4f}")
     lines.append(f"- sharpe_ratio: {backtest_metrics['sharpe_ratio']:.4f}")
     lines.append(f"- turnover: {backtest_metrics['turnover']:.4f}")
     lines.append(f"- win_rate: {backtest_metrics['win_rate']:.4f}")
     lines.append("")
-    lines.append("## 39. Backtest Warnings")
-    if backtest_report.get("warnings"):
-        for item in backtest_report["warnings"]:
-            lines.append(f"- {item}")
-    else:
-        lines.append("- none")
-    lines.append("")
-    lines.append("## 40. Knowledge Base Records")
+    lines.append("### 13 Knowledge Base Records")
     for item in kb_sections["knowledge_base_records"]:
         lines.append(
-            f"- {item['symbol']} {item['period']} score={item['strategic_score']:.2f} "
-            f"decision={item['final_decision']} confidence={item['confidence_score']:.2f}"
+            f"- {item['symbol']} {item['period']} score={item['strategic_score']:.2f} decision={item['final_decision']} confidence={item['confidence_score']:.2f}"
         )
     if not kb_sections["knowledge_base_records"]:
         lines.append("- none")
     lines.append("")
-    lines.append("## 41. Historical Score Changes")
+    lines.append("### Portfolio Snapshot")
+    lines.append(f"- {portfolio_snapshot.get('summary', '')}")
+    lines.append("")
+    lines.append("### Portfolio Ranking")
+    for item in portfolio_snapshot.get("ranked_candidates", [])[:10]:
+        lines.append(f"- {item['rank']}. {item['symbol']} {item['bucket']} total={item['total_score']:.2f} conf={item['confidence_score']:.2f}")
+    if not portfolio_snapshot.get("ranked_candidates"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Core Candidates")
+    for item in portfolio_snapshot.get("core_candidates", []):
+        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
+    if not portfolio_snapshot.get("core_candidates"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Satellite Candidates")
+    for item in portfolio_snapshot.get("satellite_candidates", []):
+        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
+    if not portfolio_snapshot.get("satellite_candidates"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Watchlist Candidates")
+    for item in portfolio_snapshot.get("watchlist_candidates", []):
+        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
+    if not portfolio_snapshot.get("watchlist_candidates"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Excluded Candidates")
+    for item in portfolio_snapshot.get("excluded_candidates", []):
+        lines.append(f"- {item['symbol']} {item['total_score']:.2f}")
+    if not portfolio_snapshot.get("excluded_candidates"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Position Snapshot")
+    lines.append(f"- {position_snapshot.get('allocation_summary', '')}")
+    lines.append("")
+    lines.append("### Recommended Positions")
+    for item in position_snapshot.get("recommendations", [])[:10]:
+        lines.append(f"- {item['symbol']} {item['bucket']} {item['recommended_weight'] * 100:.1f}%")
+    if not position_snapshot.get("recommendations"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Cash Remaining")
+    lines.append(f"- {position_snapshot.get('remaining_cash', 0.0) * 100:.1f}%")
+    lines.append("")
+    lines.append("### Rebalance Plan")
+    lines.append(f"- {rebalance_plan.get('summary', '')}")
+    lines.append("")
+    lines.append("### Rebalance Actions")
+    for item in rebalance_plan.get("actions", []):
+        lines.append(f"- {item['priority']}. {item['symbol']} {item['action']} {item['current_weight'] * 100:.1f}% -> {item['target_weight'] * 100:.1f}%")
+    if not rebalance_plan.get("actions"):
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Buy List")
+    for item in [item for item in rebalance_plan.get("actions", []) if item.get("action") in {"BUY", "ADD"}]:
+        lines.append(f"- {item['symbol']} {item['action']} {item['target_weight'] * 100:.1f}%")
+    if not [item for item in rebalance_plan.get("actions", []) if item.get("action") in {"BUY", "ADD"}]:
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Sell List")
+    for item in [item for item in rebalance_plan.get("actions", []) if item.get("action") == "SELL"]:
+        lines.append(f"- {item['symbol']} SELL")
+    if not [item for item in rebalance_plan.get("actions", []) if item.get("action") == "SELL"]:
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Reduce List")
+    for item in [item for item in rebalance_plan.get("actions", []) if item.get("action") == "REDUCE"]:
+        lines.append(f"- {item['symbol']} REDUCE")
+    if not [item for item in rebalance_plan.get("actions", []) if item.get("action") == "REDUCE"]:
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Add List")
+    for item in [item for item in rebalance_plan.get("actions", []) if item.get("action") == "ADD"]:
+        lines.append(f"- {item['symbol']} ADD")
+    if not [item for item in rebalance_plan.get("actions", []) if item.get("action") == "ADD"]:
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Hold List")
+    for item in [item for item in rebalance_plan.get("actions", []) if item.get("action") in {"HOLD", "WATCH"}]:
+        lines.append(f"- {item['symbol']} {item['action']}")
+    if not [item for item in rebalance_plan.get("actions", []) if item.get("action") in {"HOLD", "WATCH"}]:
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Backtest Result")
+    lines.append(f"- {backtest_report.get('period', '')}")
+    lines.append("")
+    lines.append("### Risk Suggested Actions")
+    if risk_report.get("suggested_actions"):
+        for item in risk_report["suggested_actions"]:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("### Historical Score Changes")
     for symbol, history in kb_sections["historical_score_changes"].items():
         lines.append(f"- {symbol}")
         for item in history:
@@ -1178,7 +1242,7 @@ def _generate_weekly_report(base_dir: Path) -> Path:
     if not kb_sections["historical_score_changes"]:
         lines.append("- none")
     lines.append("")
-    lines.append("## 42. Historical Decision Changes")
+    lines.append("### Historical Decision Changes")
     for symbol, history in kb_sections["historical_decision_changes"].items():
         lines.append(f"- {symbol}")
         for item in history:
@@ -1186,44 +1250,52 @@ def _generate_weekly_report(base_dir: Path) -> Path:
     if not kb_sections["historical_decision_changes"]:
         lines.append("- none")
     lines.append("")
-    lines.append("## 43. Workflow Summary")
+    lines.append("### 14 Workflow Summary")
     lines.append(f"- {workflow_sections['workflow_summary']}")
+    lines.append(f"- Workflow Status: {workflow_sections['workflow_run']['final_status']}")
     lines.append("")
-    lines.append("## 44. Workflow Status")
-    lines.append(f"- {workflow_sections['workflow_run']['final_status']}")
+    lines.append("### 15 Quality & Audit")
+    quality_report = quality_sections["quality_report"]
+    lines.append(f"- rc1_ready: {quality_report['rc1_ready']}")
+    lines.append(f"- passed_count: {quality_report['passed_count']}")
+    lines.append(f"- failed_count: {quality_report['failed_count']}")
+    audit_report = audit_sections["audit_report"]
+    lines.append(f"- overall_status: {audit_report['overall_status']}")
+    lines.append(f"- warning_count: {audit_report['warning_count']}")
+    lines.append(f"- skill_readiness: {', '.join(f'{k}={v}' for k, v in audit_report['skill_readiness'].items()) or 'none'}")
     lines.append("")
-    lines.append("## 45. Workflow Warnings")
+    lines.append("### Quality Report")
+    lines.append(f"- rc1_ready: {quality_report['rc1_ready']}")
+    lines.append(f"- passed_count: {quality_report['passed_count']}")
+    lines.append(f"- failed_count: {quality_report['failed_count']}")
+    lines.append("")
+    lines.append("### Audit Report")
+    lines.append(f"- overall_status: {audit_report['overall_status']}")
+    lines.append(f"- passed_count: {audit_report['passed_count']}")
+    lines.append(f"- warning_count: {audit_report['warning_count']}")
+    lines.append(f"- failed_count: {audit_report['failed_count']}")
+    lines.append("")
+    lines.append("### RC1 Status")
+    lines.append(f"- {quality_sections['rc1_status']}")
+    lines.append("")
+    lines.append("### Risk Report")
+    lines.append(f"- level={risk_report.get('risk_level', 'LOW')} score={risk_report.get('total_risk_score', 0.0):.2f}")
+    lines.append("")
+    lines.append("### Workflow Warnings")
     if workflow_sections["workflow_warnings"]:
         for item in workflow_sections["workflow_warnings"]:
             lines.append(f"- {item}")
     else:
         lines.append("- none")
     lines.append("")
-    lines.append("## 46. Workflow Errors")
+    lines.append("### Workflow Errors")
     if workflow_sections["workflow_errors"]:
         for item in workflow_sections["workflow_errors"]:
             lines.append(f"- {item}")
     else:
         lines.append("- none")
     lines.append("")
-    lines.append("## 47. Quality Report")
-    quality_report = quality_sections["quality_report"]
-    lines.append(f"- rc1_ready: {quality_report['rc1_ready']}")
-    lines.append(f"- passed_count: {quality_report['passed_count']}")
-    lines.append(f"- failed_count: {quality_report['failed_count']}")
-    lines.append("")
-    lines.append("## 48. RC1 Status")
-    lines.append(f"- {quality_sections['rc1_status']}")
-    lines.append("")
-    lines.append("## 49. Audit Report")
-    audit_report = audit_sections["audit_report"]
-    lines.append(f"- overall_status: {audit_report['overall_status']}")
-    lines.append(f"- passed_count: {audit_report['passed_count']}")
-    lines.append(f"- warning_count: {audit_report['warning_count']}")
-    lines.append(f"- failed_count: {audit_report['failed_count']}")
-    lines.append(f"- timestamp: {audit_report['timestamp']}")
-    lines.append("")
-    lines.append("## 50. Skill Readiness")
+    lines.append("### Skill Readiness")
     for skill, status in audit_report["skill_readiness"].items():
         lines.append(f"- {skill}: {status}")
     if not audit_report["skill_readiness"]:

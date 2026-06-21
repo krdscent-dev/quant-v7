@@ -87,7 +87,7 @@
 
 ## 08 Appendix
 ### Workflow
-- Workflow 4cb0aaa3f9674cfaa27fdc65bd9ff062 completed with 17 successful steps, 0 failed steps and 0 skipped steps.
+- Workflow 92e0a365f35142faa29a64dd6331653d completed with 17 successful steps, 0 failed steps and 0 skipped steps.
 - Workflow Status: SUCCESS
 ### Provider Trust
 - 1. tushare 0.97
@@ -99,8 +99,8 @@
 - failed_count: 0
 ### Audit Report
 - overall_status: WARNING
-- passed_count: 19
-- warning_count: 1
+- passed_count: 18
+- warning_count: 2
 - failed_count: 0
 ### Backtest Summary
 - total_return: 0.0000

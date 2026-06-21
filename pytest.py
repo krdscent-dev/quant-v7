@@ -40,6 +40,10 @@ def _run_function_tests(module: types.ModuleType, result: unittest.TestResult) -
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     args = set(sys.argv[1:])
     os.environ["CODEX_PYTEST_RUNNING"] = "1"
     if "--full" not in args:
