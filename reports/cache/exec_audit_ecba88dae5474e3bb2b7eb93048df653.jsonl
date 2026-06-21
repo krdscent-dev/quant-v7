@@ -1,0 +1,1 @@
+{"timestamp": "2026-06-21T19:14:03.793990", "event_type": "SYSTEM_CHANGE_APPLIED", "severity": "INFO", "payload": {"change_id": "chg_prop_51272371f98b468397422e51c6c6ff08", "target": "tau_factor_score", "before": 0.2, "after": 0.205, "proposal_id": "prop_51272371f98b468397422e51c6c6ff08", "reason": "WIN case suggests increase for tau_factor_score."}}

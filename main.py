@@ -944,24 +944,29 @@ def build_argument_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    parser = build_argument_parser()
-    args = parser.parse_args()
+    """Run the pure research and evaluation pipeline.
 
-    loop_requested = args.loop or os.environ.get("V12_LOOP", "0") == "1"
+    This replaces live execution behavior with deterministic analysis,
+    backtesting, diagnosis, and reporting.
+    """
+
+    parser = argparse.ArgumentParser(description="V12 pure research and evaluation pipeline")
+    parser.add_argument(
+        "--symbols",
+        type=str,
+        default=os.environ.get("V12_RESEARCH_SYMBOLS", ",".join(DEFAULT_SYMBOLS)),
+        help="Comma-separated A-share symbols for the research universe.",
+    )
+    args = parser.parse_args()
     symbols = _parse_symbols(args.symbols)
 
-    if args.single:
-        if loop_requested:
-            iterations = args.iterations if args.iterations > 0 else None
-            run_loop(iterations, args.interval)
-        else:
-            run_once()
-    else:
-        if loop_requested:
-            iterations = args.iterations if args.iterations > 0 else None
-            run_portfolio_loop(symbols, iterations, args.interval)
-        else:
-            run_portfolio_once(symbols)
+    from core.v12_research_evaluation_engine import run_v12_research_evaluation
+    from core.v12_research_report import V12ResearchReport
+
+    result = run_v12_research_evaluation(symbols=symbols)
+    report_paths = V12ResearchReport().write(result)
+    print(report_paths["markdown"])
+    print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
 

@@ -1,0 +1,178 @@
+{
+  "generated_at": "2026-06-21T19:18:18",
+  "system_type": "RESEARCH_AND_EVALUATION_ONLY",
+  "report": {
+    "market_regime": {
+      "structure": {
+        "regime": "RANGE",
+        "trend_score": 0.5,
+        "volatility_state": "MEDIUM",
+        "structure_strength": 0.0
+      },
+      "capital_flow": {
+        "top_inflow_sectors": [
+          "AI Computing",
+          "General"
+        ],
+        "top_outflow_sectors": [
+          "General",
+          "AI Computing"
+        ],
+        "flow_strength": 0.625,
+        "leader_concentration": 0.0,
+        "rotation_signal": "NO_CLEAR_ROTATION"
+      },
+      "narrative": {
+        "active_narratives": [
+          "AI EXPANSION"
+        ],
+        "narrative_strength": 0.7125,
+        "narrative_phase": "PEAK",
+        "supporting_sectors": [
+          "AI Computing"
+        ],
+        "sector_narrative_mapping": {
+          "AI EXPANSION": [
+            "AI Computing"
+          ]
+        }
+      },
+      "cycle_state": {
+        "liquidity_cycle": "EXPANSION",
+        "sentiment_cycle": "NEUTRAL",
+        "industry_cycle": "EARLY_GROWTH",
+        "unified_cycle_state": "TRANSITION"
+      },
+      "capital_simulation": {
+        "position_multiplier": 0.8981,
+        "risk_budget": 0.7273,
+        "exposure_limit": 1.0,
+        "leverage_adjustment": 1.0,
+        "risk_mode": "NEUTRAL"
+      },
+      "confidence": 0.5463
+    },
+    "capital_flow": {
+      "top_inflow_sectors": [
+        "AI Computing",
+        "General"
+      ],
+      "top_outflow_sectors": [
+        "General",
+        "AI Computing"
+      ],
+      "flow_strength": 0.625,
+      "leader_concentration": 0.0,
+      "rotation_signal": "NO_CLEAR_ROTATION"
+    },
+    "narrative": {
+      "active_narratives": [
+        "AI EXPANSION"
+      ],
+      "narrative_strength": 0.7125,
+      "narrative_phase": "PEAK",
+      "supporting_sectors": [
+        "AI Computing"
+      ],
+      "sector_narrative_mapping": {
+        "AI EXPANSION": [
+          "AI Computing"
+        ]
+      }
+    },
+    "cycle_state": {
+      "liquidity_cycle": "EXPANSION",
+      "sentiment_cycle": "NEUTRAL",
+      "industry_cycle": "EARLY_GROWTH",
+      "unified_cycle_state": "TRANSITION"
+    },
+    "strategy_score": 0.07,
+    "stability_score": 1.0,
+    "risk_score": 0.698,
+    "backtest_result": {
+      "return": 0.0,
+      "drawdown": 0.0,
+      "win_rate": 0.0
+    },
+    "recommendation": "NO_GO",
+    "confidence": 0.5463,
+    "diagnosis": {
+      "health": {
+        "status": "CRITICAL",
+        "severity": "HIGH",
+        "drawdown_risk": "MANAGEABLE",
+        "accuracy_risk": "ELEVATED",
+        "risk_level": "LOW",
+        "score": 0.302,
+        "warnings": [
+          "agent_accuracy_below_55pct",
+          "win_rate_below_50pct"
+        ]
+      },
+      "biases": [
+        {
+          "bias_name": "defensive_action_bias",
+          "severity": "MEDIUM",
+          "message": "System is leaning toward observation more often than active positioning.",
+          "evidence": {
+            "observe_ratio": 1.0,
+            "hold_ratio": 0.0,
+            "small_add_ratio": 0.0
+          }
+        }
+      ],
+      "repairs": [
+        {
+          "priority": 1,
+          "severity": "HIGH",
+          "title": "Reduce exposure and pause new expansion",
+          "action": "Tighten portfolio ceiling and favor HOLD/OBSERVE until drawdown normalizes.",
+          "rationale": "Health score is critical and drawdown risk is elevated.",
+          "expected_effect": "Lower drawdown and reduce forced rotation pressure."
+        },
+        {
+          "priority": 3,
+          "severity": "MEDIUM",
+          "title": "Reduce over-defensive posture",
+          "action": "Allow limited SMALL_ADD / HOLD in strong sector leadership setups.",
+          "rationale": "System is leaning toward observation more often than active positioning.",
+          "expected_effect": "Prevent the system from freezing in neutral market states."
+        }
+      ],
+      "stability": {
+        "status": "STABLE",
+        "drift_score": 0.1094,
+        "inconsistency_score": 0.1333,
+        "sync_score": 1.0,
+        "warnings": [
+          "confidence_dispersion_elevated"
+        ]
+      }
+    },
+    "research_details": [
+      {
+        "symbol": "1",
+        "strategic_score": 0.07,
+        "decision": "主题强度偏弱，当前以基础观察为主。 核心财务因子存在无效或缺失信号，建议降级处理。",
+        "confidence": 0.0
+      },
+      {
+        "symbol": "300750",
+        "strategic_score": 0.07,
+        "decision": "主题强度偏弱，当前以基础观察为主。 核心财务因子存在无效或缺失信号，建议降级处理。",
+        "confidence": 0.0
+      }
+    ],
+    "validation": {
+      "stability_score": 1.0,
+      "profit_score": 0.225,
+      "overfit_risk": 0.0,
+      "overall_score": 0.7288,
+      "failure_points": [
+        "profit_robustness_low"
+      ],
+      "recommendation": "Harden system controls before deployment."
+    },
+    "evaluation_summary": "regime=RANGE strategy_score=0.07 stability=1.00 risk=0.70 recommendation=NO_GO"
+  }
+}
