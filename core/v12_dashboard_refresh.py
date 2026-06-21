@@ -13,8 +13,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from core.v12_dashboard_builder import build_v12_dashboard
 from core.v12_dashboard_adapter import adapt_v12_dashboard
+from core.v12_pipeline_lock import pipeline_lock_error_state, validate_adapter_payload
 from core.v12_report_normalizer import normalize_v12_report
 from core.v12_research_evaluation_engine import run_v12_research_evaluation
 from ui.v12_ui_layer import build_v12_ui
@@ -87,8 +87,9 @@ class V12DashboardRefreshManager:
     def _build_snapshot(self, symbols: Sequence[str] | None = None) -> dict[str, Any]:
         raw_report = run_v12_research_evaluation(symbols=symbols)
         normalized = normalize_v12_report(raw_report)
-        dashboard = build_v12_dashboard(normalized)
         adapter_output = adapt_v12_dashboard(normalized)
+        if not validate_adapter_payload(adapter_output):
+            return pipeline_lock_error_state()
         ui_layout = build_v12_ui(adapter_output)
         return {
             "timestamp": _now_iso(),
@@ -100,10 +101,10 @@ class V12DashboardRefreshManager:
             "decision": normalized["decision"],
             "reasoning": normalized["explanation"],
             "system_health": normalized["system_health"],
-            "dashboard": dashboard,
             "dashboard_adapter": adapter_output,
             "ui_layout": ui_layout,
             "warnings": [],
+            "source": "report_adapter_ui",
         }
 
     def refresh_analysis(self, symbols: Sequence[str] | None = None) -> dict[str, Any]:
@@ -112,6 +113,11 @@ class V12DashboardRefreshManager:
         previous = self._load_last_snapshot()
         try:
             snapshot = self._build_snapshot(symbols=symbols)
+            if snapshot.get("status") == "PIPELINE_LOCK_ERROR":
+                snapshot["last_valid_snapshot"] = previous or {}
+                snapshot["previous_snapshot_available"] = bool(previous)
+                snapshot["refresh_mode"] = "MANUAL_ONLY"
+                return snapshot
             snapshot["comparison"] = _compare_snapshots(previous, snapshot)
             snapshot["last_refresh_time"] = snapshot["timestamp"]
             snapshot["refresh_button"] = "REFRESH ANALYSIS"
@@ -137,7 +143,7 @@ class V12DashboardRefreshManager:
 
     def _neutral_snapshot(self, error_message: str | None = None) -> dict[str, Any]:
         normalized = normalize_v12_report({})
-        dashboard = build_v12_dashboard(normalized)
+        adapter_output = adapt_v12_dashboard(normalized)
         timestamp = _now_iso()
         snapshot = {
             "timestamp": timestamp,
@@ -151,7 +157,8 @@ class V12DashboardRefreshManager:
             "decision": normalized["decision"],
             "reasoning": normalized["explanation"],
             "system_health": normalized["system_health"],
-            "dashboard": dashboard,
+            "dashboard_adapter": adapter_output,
+            "ui_layout": build_v12_ui(adapter_output),
             "warnings": ["STALE DATA"],
             "refresh_error": error_message or "No cached snapshot available.",
             "previous_snapshot_available": False,
@@ -160,6 +167,7 @@ class V12DashboardRefreshManager:
                 "delta": {},
                 "summary": "No previous snapshot available.",
             },
+            "source": "report_adapter_ui",
         }
         return snapshot
 

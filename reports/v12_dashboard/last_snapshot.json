@@ -34,8 +34,12 @@
     "overfitting_risk": 0.2,
     "data_quality": 0.9
   },
-  "dashboard": {
-    "version": "cached"
+  "dashboard_adapter": {
+    "panels": []
   },
-  "warnings": []
+  "ui_layout": {
+    "layout": "dashboard"
+  },
+  "warnings": [],
+  "source": "report_adapter_ui"
 }

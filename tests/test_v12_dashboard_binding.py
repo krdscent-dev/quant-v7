@@ -19,11 +19,9 @@ class V12DashboardBindingTest(unittest.TestCase):
 
         ui = build_v12_ui(raw_like_payload)
 
-        assert ui["status"] == "NO VALID SNAPSHOT"
-        assert ui["components"][0]["type"] == "status_banner"
-        assert ui["components"][0]["label"] == "NO VALID SNAPSHOT"
-        assert ui["components"][2]["data"]["action"] == "HOLD"
-        assert ui["components"][2]["data"]["confidence"] == 0.3
+        assert ui["status"] == "PIPELINE_LOCK_ERROR"
+        assert ui["error"] == "PIPELINE_LOCK_ERROR"
+        assert ui["last_valid_snapshot"] == {}
 
     def test_ui_accepts_adapter_output_only(self) -> None:
         dashboard_adapter_output = adapt_v12_dashboard(

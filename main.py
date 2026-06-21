@@ -967,19 +967,15 @@ def main() -> int:
 
     from core.v12_research_evaluation_engine import run_v12_research_evaluation
     from core.v12_research_report import V12ResearchReport
-    from core.v12_dashboard_adapter import adapt_v12_dashboard
-    from core.v12_report_normalizer import normalize_v12_report
-    from ui.v12_ui_layer import build_v12_ui
+    from core.v12_dashboard_refresh import refresh_dashboard
 
     result = run_v12_research_evaluation(symbols=symbols)
     report_paths = V12ResearchReport().write(result)
     print(report_paths["markdown"])
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if args.dashboard_refresh:
-        normalized = normalize_v12_report(result)
-        dashboard_adapter_output = adapt_v12_dashboard(normalized)
-        ui_layout = build_v12_ui(dashboard_adapter_output)
-        print(json.dumps(ui_layout, ensure_ascii=False, indent=2))
+        snapshot = refresh_dashboard(symbols=symbols)
+        print(json.dumps(snapshot, ensure_ascii=False, indent=2))
     return 0
 
 

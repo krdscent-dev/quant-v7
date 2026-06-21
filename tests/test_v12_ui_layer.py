@@ -57,13 +57,10 @@ class V12UILayerTest(unittest.TestCase):
     def test_ui_layer_defaults_to_neutral_state_when_missing(self) -> None:
         ui = build_v12_ui({})
 
-        assert ui["layout"] == "dashboard"
-        assert ui["mode"] == "MANUAL_REFRESH_ONLY"
-        assert ui["confidence_state"] == "LOW CONFIDENCE"
-        assert ui["components"][0]["type"] == "status_banner"
-        assert ui["components"][0]["label"] == "NO VALID SNAPSHOT"
-        assert ui["components"][2]["data"]["action"] == "HOLD"
-        assert ui["components"][2]["data"]["confidence"] == 0.3
+        assert ui["status"] == "PIPELINE_LOCK_ERROR"
+        assert ui["error"] == "PIPELINE_LOCK_ERROR"
+        assert ui["message"] == "Adapter output did not match the locked schema."
+        assert ui["last_valid_snapshot"] == {}
 
 
 if __name__ == "__main__":  # pragma: no cover

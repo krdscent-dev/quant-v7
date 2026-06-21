@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from core.v12_dashboard_adapter import validate_dashboard_adapter_output
+from core.v12_pipeline_lock import pipeline_lock_error_state
 from core.v12_ui_schema import UIComponent, V12UISchema
 
 
@@ -38,32 +39,7 @@ class V12UILayer:
 
     def build(self, adapter_output: Mapping[str, Any] | None) -> dict[str, Any]:
         if not validate_dashboard_adapter_output(adapter_output):
-            schema = V12UISchema(
-                mode="MANUAL_REFRESH_ONLY",
-                confidence_state="LOW CONFIDENCE",
-                components=(
-                    UIComponent(
-                        type="status_banner",
-                        label="NO VALID SNAPSHOT",
-                        data={"message": "NO VALID SNAPSHOT", "severity": "warning"},
-                        highlight=True,
-                    ),
-                    UIComponent(
-                        type="button",
-                        label="Refresh Snapshot",
-                        data={"action": "REFRESH ANALYSIS", "mode": "manual_only"},
-                    ),
-                    UIComponent(
-                        type="decision_card",
-                        label="Decision Core",
-                        highlight=True,
-                        data={"action": "HOLD", "confidence": 0.3, "reason": "NO VALID SNAPSHOT"},
-                    ),
-                ),
-            )
-            payload = schema.to_dict()
-            payload["status"] = "NO VALID SNAPSHOT"
-            return payload
+            return pipeline_lock_error_state()
 
         dashboard = dict(adapter_output or {})
         panels = dashboard.get("panels", [])
@@ -150,6 +126,7 @@ class V12UILayer:
         payload = schema.to_dict()
         payload["status"] = "LOW CONFIDENCE" if confidence < 0.35 else "NORMAL"
         payload["risk_override"] = override
+        payload["source"] = "dashboard_adapter"
         return payload
 
 

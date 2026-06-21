@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from core.v12_pipeline_lock import validate_adapter_payload
+
 
 class V12DashboardAdapterError(ValueError):
     """Raised when a payload cannot be adapted or validated."""
@@ -36,14 +38,7 @@ def _safe_list(value: Any) -> list[Any]:
 def validate_dashboard_adapter_output(payload: Mapping[str, Any] | None) -> bool:
     """Validate the adapter output structure without touching raw reports."""
 
-    if not isinstance(payload, Mapping):
-        return False
-    panels = payload.get("panels")
-    if not isinstance(panels, list) or len(panels) < 4:
-        return False
-    expected = ["market_overview", "risk", "performance", "decision_core"]
-    actual = [str(panel.get("panel", "")) for panel in panels[:4] if isinstance(panel, Mapping)]
-    return actual == expected
+    return validate_adapter_payload(payload)
 
 
 @dataclass(frozen=True)
