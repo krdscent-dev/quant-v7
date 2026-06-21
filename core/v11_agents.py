@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from agents.adaptive_governor import AdaptiveGovernor
+from agents.agent_lifecycle_manager import AgentLifecycleManager
 from agents.agent_performance_tracker import AgentPerformanceTracker
 from agents.decision_arbitrator import DecisionArbitrator
 from agents.weight_manager import AgentWeightManager
@@ -183,6 +184,7 @@ class V11AgentOrchestrator:
         self.performance_tracker = AgentPerformanceTracker()
         self.weight_manager = AgentWeightManager()
         self.adaptive_governor = AdaptiveGovernor()
+        self.lifecycle_manager = AgentLifecycleManager()
         self.audit_agent = AuditAgent(audit_engine)
 
     def run(
@@ -210,6 +212,7 @@ class V11AgentOrchestrator:
             current_weights,
             str(macro.payload["macro_regime"]),
         )
+        lifecycle_result = self.lifecycle_manager.evaluate(performance_summary, regime_adjusted_weights)
         arbitration = self.decision_arbitrator.arbitrate(
             agent_payloads,
             agent_weights=regime_adjusted_weights,
@@ -242,17 +245,15 @@ class V11AgentOrchestrator:
                 }
                 for agent, item in performance_summary.items()
             },
+            "active_agents": lifecycle_result.active_agents,
+            "removed_agents": lifecycle_result.removed_agents,
+            "newly_created_agents": lifecycle_result.newly_created_agents,
+            "promoted_agents": lifecycle_result.promoted_agents,
+            "agent_performance_scores": lifecycle_result.performance_scores,
+            "structural_changes": lifecycle_result.structural_changes,
             "audit_trail": {
                 "event_type": audit_record["event_type"],
                 "timestamp": audit_record["timestamp"],
-                "agents": [
-                    "MacroAgent",
-                    "SectorAgent",
-                    "AlphaAgent",
-                    "RiskAgent",
-                    "PortfolioAgent",
-                    "DecisionArbitrator",
-                    "AuditAgent",
-                ],
+                "agents": lifecycle_result.active_agents,
             },
         }

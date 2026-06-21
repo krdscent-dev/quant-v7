@@ -52,6 +52,54 @@ def _market_snapshot(results: list[Any]) -> dict[str, float]:
     return {"trend": trend, "volatility": volatility}
 
 
+def _agent_performance_from_decisions(decisions: list[dict[str, Any]], regime: str) -> list[dict[str, Any]]:
+    """Create a lightweight agent-performance view without changing scoring."""
+
+    records: list[dict[str, Any]] = []
+    for decision in decisions:
+        action = str(decision.get("action", "OBSERVE"))
+        risk_score = float(decision.get("risk_score", 0.0) or 0.0)
+        sector_strength = float(decision.get("sector_strength", 0.0) or 0.0)
+        confidence = float(decision.get("confidence", 0.0) or 0.0)
+
+        records.append(
+            {
+                "agent_name": "AlphaAgent",
+                "outcome": "WIN" if action in {"ADD", "SMALL_ADD", "HOLD"} and confidence >= 0.5 else "LOSS",
+                "pnl_contribution": 0.04 if action in {"ADD", "SMALL_ADD"} else 0.01,
+            }
+        )
+        records.append(
+            {
+                "agent_name": "RiskAgent",
+                "outcome": "WIN" if risk_score <= 0.7 or regime in {"BEAR", "DEFENSIVE"} else "LOSS",
+                "pnl_contribution": 0.03 if regime in {"BEAR", "DEFENSIVE"} else 0.0,
+            }
+        )
+        records.append(
+            {
+                "agent_name": "SectorAgent",
+                "outcome": "WIN" if sector_strength >= 0.5 else "LOSS",
+                "pnl_contribution": 0.02 if sector_strength >= 0.75 else 0.0,
+            }
+        )
+        records.append(
+            {
+                "agent_name": "MacroAgent",
+                "outcome": "WIN" if regime in {"BULL", "STRUCTURAL", "ROTATION", "BEAR"} else "LOSS",
+                "pnl_contribution": 0.01,
+            }
+        )
+        records.append(
+            {
+                "agent_name": "PortfolioAgent",
+                "outcome": "WIN" if action in {"HOLD", "OBSERVE", "ADD", "SMALL_ADD"} else "LOSS",
+                "pnl_contribution": 0.01,
+            }
+        )
+    return records
+
+
 def main() -> None:
     base_dir = Path(__file__).resolve().parent
     ranked = load_or_build_rankings(base_dir, refresh=os.environ.get("V10_REFRESH") == "1")
@@ -128,11 +176,12 @@ def main() -> None:
         raw_decisions.append(decision)
 
     final_decisions = portfolio_autopilot.apply_constraints(raw_decisions)
+    performance_log = self_learning_engine.evaluate_decision(final_decisions)
+    agent_performance_log = _agent_performance_from_decisions(final_decisions, regime_result.regime)
     v11_decisions = [
-        v11_orchestrator.run(decision, regime_result)
+        v11_orchestrator.run(decision, regime_result, agent_performance_log=agent_performance_log)
         for decision in final_decisions
     ]
-    performance_log = self_learning_engine.evaluate_decision(final_decisions)
     pre_snapshot = version_control.snapshot("pre_governance")
     proposals = proposal_engine.generate_proposals(
         performance_log,
@@ -169,7 +218,7 @@ def main() -> None:
     post_snapshot = version_control.snapshot("post_execution")
     audit_summary = audit_engine.summary()
 
-    print("symbol\talpha_score\trisk_score\tmacro_regime\tsector\tsector_strength\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tagent_performance_summary\tarbitration_reason\taudit_trail")
+    print("symbol\talpha_score\trisk_score\tmacro_regime\tsector\tsector_strength\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tactive_agents\tremoved_agents\tnewly_created_agents\tpromoted_agents\tagent_performance_scores\tstructural_changes\tagent_performance_summary\tarbitration_reason\taudit_trail")
     for decision in v11_decisions:
         sector_payload = decision["sector_context"]
         print(
@@ -184,6 +233,12 @@ def main() -> None:
             f"{decision['final_allocation']:.4f}\t"
             f"{decision['current_agent_weights']}\t"
             f"{decision['regime_adjusted_weights']}\t"
+            f"{decision['active_agents']}\t"
+            f"{decision['removed_agents']}\t"
+            f"{decision['newly_created_agents']}\t"
+            f"{decision['promoted_agents']}\t"
+            f"{decision['agent_performance_scores']}\t"
+            f"{decision['structural_changes']}\t"
             f"{decision['agent_performance_summary']}\t"
             f"{decision['arbitration_reason']}\t"
             f"{decision['audit_trail']['event_type']}@{decision['audit_trail']['timestamp']}"
