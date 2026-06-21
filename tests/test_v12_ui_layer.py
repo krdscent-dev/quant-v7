@@ -57,8 +57,8 @@ class V12UILayerTest(unittest.TestCase):
     def test_ui_layer_defaults_to_neutral_state_when_missing(self) -> None:
         ui = build_v12_ui({})
 
-        assert ui["status"] == "PIPELINE_LOCK_ERROR"
-        assert ui["error"] == "PIPELINE_LOCK_ERROR"
+        assert ui["status"] == "ARCHITECTURE VIOLATION"
+        assert ui["error"] == "ARCHITECTURE VIOLATION"
         assert ui["message"] == "Adapter output did not match the locked schema."
         assert ui["last_valid_snapshot"] == {}
 

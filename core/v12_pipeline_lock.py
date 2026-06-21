@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 REQUIRED_PANEL_ORDER = ("market_overview", "risk", "performance", "decision_core")
+PIPELINE_LOCK_STATUS = "ARCHITECTURE VIOLATION"
 
 
 def validate_adapter_payload(payload: Mapping[str, Any] | None) -> bool:
@@ -23,10 +24,9 @@ def validate_adapter_payload(payload: Mapping[str, Any] | None) -> bool:
 
 def pipeline_lock_error_state(last_valid_snapshot: Mapping[str, Any] | None = None) -> dict[str, Any]:
     payload: dict[str, Any] = {
-        "status": "PIPELINE_LOCK_ERROR",
-        "error": "PIPELINE_LOCK_ERROR",
+        "status": PIPELINE_LOCK_STATUS,
+        "error": PIPELINE_LOCK_STATUS,
         "message": "Adapter output did not match the locked schema.",
         "last_valid_snapshot": dict(last_valid_snapshot or {}),
     }
     return payload
-

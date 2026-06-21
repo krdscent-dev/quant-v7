@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from core.v12_dashboard_adapter import adapt_v12_dashboard
-from core.v12_pipeline_lock import pipeline_lock_error_state, validate_adapter_payload
+from core.v12_pipeline_lock import PIPELINE_LOCK_STATUS, pipeline_lock_error_state, validate_adapter_payload
 from core.v12_report_normalizer import normalize_v12_report
 from core.v12_research_evaluation_engine import run_v12_research_evaluation
 from ui.v12_ui_layer import build_v12_ui
@@ -113,7 +113,7 @@ class V12DashboardRefreshManager:
         previous = self._load_last_snapshot()
         try:
             snapshot = self._build_snapshot(symbols=symbols)
-            if snapshot.get("status") == "PIPELINE_LOCK_ERROR":
+            if snapshot.get("status") == PIPELINE_LOCK_STATUS:
                 snapshot["last_valid_snapshot"] = previous or {}
                 snapshot["previous_snapshot_available"] = bool(previous)
                 snapshot["refresh_mode"] = "MANUAL_ONLY"

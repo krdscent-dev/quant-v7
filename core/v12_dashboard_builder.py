@@ -1,4 +1,9 @@
-"""Build a frontend-ready dashboard layout from the normalized V12 report."""
+"""LEGACY_LOCKED dashboard builder.
+
+This module is retained for compatibility only and must not be used in the
+production V12 path. The production flow is:
+Report -> Adapter -> UI.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +11,8 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from core.v12_dashboard_schema import DashboardMetric, DashboardPanel, V12DashboardSchema
+
+LEGACY_LOCKED = True
 
 
 def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
@@ -244,4 +251,3 @@ def build_v12_dashboard(normalized_report: Mapping[str, Any] | None) -> dict[str
     """Convenience wrapper for callers that need the dashboard JSON."""
 
     return V12DashboardBuilder().build(normalized_report)
-

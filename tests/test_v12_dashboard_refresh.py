@@ -32,6 +32,7 @@ class V12DashboardRefreshTest(unittest.TestCase):
         assert snapshot["refresh_mode"] == "MANUAL_ONLY"
         assert snapshot["status"] == "OK"
         assert snapshot["refresh_button"] == "REFRESH ANALYSIS"
+        assert "dashboard" not in snapshot
         assert snapshot["market_state"]["structure"] == 0.82
         assert snapshot["decision"]["action"] == "BUY"
         assert "reasoning" in snapshot
@@ -135,7 +136,7 @@ class V12DashboardRefreshTest(unittest.TestCase):
         ):
             snapshot = manager.refresh_analysis(symbols=("000001",))
 
-        assert snapshot["status"] == "PIPELINE_LOCK_ERROR"
+        assert snapshot["status"] == "ARCHITECTURE VIOLATION"
         assert snapshot["last_valid_snapshot"]["status"] == "OK"
         assert snapshot["previous_snapshot_available"] is True
 
