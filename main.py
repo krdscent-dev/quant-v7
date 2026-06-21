@@ -25,10 +25,10 @@ from core.v10_sector_engine import V10SectorEngine
 from core.v10_version_control import V10VersionControl
 from core.v10_weekly_report import load_or_build_rankings
 from core.v11_agents import V11AgentOrchestrator
-from market.capital_flow_engine import CapitalFlowEngine
 from market.cycle_engine import CycleEngine
 from market.narrative_engine import NarrativeEngine
 from market.v12_1_structure_engine import analyze_market_structure
+from market.v12_2_capital_flow_engine import V122CapitalFlowEngine
 
 
 class _V12RegimeAdapter:
@@ -116,6 +116,24 @@ def _agent_performance_from_decisions(decisions: list[dict[str, Any]], regime: s
     return records
 
 
+def _sector_flow_inputs(sector_engine: V10SectorEngine) -> tuple[dict[str, float], dict[str, float], dict[str, float], dict[str, float]]:
+    """Build deterministic capital-flow proxies from the current sector dashboard."""
+
+    volume: dict[str, float] = {}
+    inflow: dict[str, float] = {}
+    outflow: dict[str, float] = {}
+    leader_volume: dict[str, float] = {}
+    for row in sector_engine.sector_dashboard():
+        sector = str(row["sector"])
+        strength = float(row["sector_strength"])
+        sector_volume = round(100.0 * max(strength, 0.05), 4)
+        volume[sector] = sector_volume
+        inflow[sector] = round(sector_volume * strength, 4)
+        outflow[sector] = round(sector_volume * max(0.0, 1.0 - strength), 4)
+        leader_volume[sector] = round(sector_volume * (0.35 + 0.40 * strength), 4)
+    return volume, inflow, outflow, leader_volume
+
+
 def main() -> None:
     base_dir = Path(__file__).resolve().parent
     ranked = load_or_build_rankings(base_dir, refresh=os.environ.get("V10_REFRESH") == "1")
@@ -147,7 +165,15 @@ def main() -> None:
         volatility=market_data["volatility"],
         price_momentum=market_data["price_momentum"],
     )
-    capital_flows = CapitalFlowEngine().rank_flows(sector_engine.sector_scores)
+    sector_volume, capital_inflow, capital_outflow, leader_volume = _sector_flow_inputs(sector_engine)
+    capital_flow_analysis = V122CapitalFlowEngine().analyze_sector_flows(
+        sector_trading_volume=sector_volume,
+        capital_inflow=capital_inflow,
+        capital_outflow=capital_outflow,
+        leader_stock_volume=leader_volume,
+    )
+    capital_flows = capital_flow_analysis.ranked_flows
+    flow_by_sector = {item.sector: item for item in capital_flows}
     narrative = NarrativeEngine().extract(capital_flows, ranked)
     cycle_state = CycleEngine().detect(market_structure)
     regime_result = _V12RegimeAdapter(market_structure, legacy_regime_result)
@@ -158,10 +184,13 @@ def main() -> None:
     print(f"dominant_narrative\t{narrative.dominant_narrative}")
     print(f"narrative_consistency\t{narrative.consistency}")
     print(f"cycle_state\tmacro={cycle_state.macro_cycle}\tliquidity={cycle_state.liquidity_cycle}\trisk_appetite={cycle_state.risk_appetite}")
+    print(f"flow_strength\t{capital_flow_analysis.flow_strength}")
+    print(f"leader_concentration\t{capital_flow_analysis.leader_concentration:.2f}")
+    print(f"rotation_path\t{' -> '.join(capital_flow_analysis.rotation_path)}")
     print("capital_flow_ranking")
-    print("rank\tsector\tflow_score\tdirection")
+    print("rank\tsector\tflow_score\tdirection\tleader_concentration\tnet_inflow\tflow_strength")
     for flow in capital_flows:
-        print(f"{flow.rank}\t{flow.sector}\t{flow.flow_score:.2f}\t{flow.direction}")
+        print(f"{flow.rank}\t{flow.sector}\t{flow.flow_score:.2f}\t{flow.direction}\t{flow.leader_concentration:.2f}\t{flow.net_inflow:.2f}\t{flow.flow_strength}")
     print("")
     print(f"Market Regime: {regime_result.regime} (trend={regime_result.trend:.2f}, volatility={regime_result.volatility:.2f})")
     print(f"Regime Reason: {regime_result.reason}")
@@ -182,6 +211,7 @@ def main() -> None:
         symbol = getattr(item, "code", "UNKNOWN")
         theme = getattr(item, "theme", "UNKNOWN")
         item_sector_context = sector_context.get(str(symbol), {})
+        sector_flow = flow_by_sector.get(str(item_sector_context.get("sector", "")))
         causal = cognitive_graph.infer_for_context(
             sector=str(item_sector_context.get("sector", "UNKNOWN")),
             theme=str(theme),
@@ -211,6 +241,10 @@ def main() -> None:
                 "macro_cycle": cycle_state.macro_cycle,
                 "liquidity_cycle": cycle_state.liquidity_cycle,
                 "risk_appetite": cycle_state.risk_appetite,
+                "capital_flow_score": sector_flow.flow_score if sector_flow else 0.0,
+                "capital_flow_direction": sector_flow.direction if sector_flow else "UNKNOWN",
+                "leader_concentration": sector_flow.leader_concentration if sector_flow else 0.0,
+                "rotation_path": capital_flow_analysis.rotation_path,
                 **item_sector_context,
             },
         )
@@ -221,6 +255,10 @@ def main() -> None:
         decision["macro_cycle"] = cycle_state.macro_cycle
         decision["liquidity_cycle"] = cycle_state.liquidity_cycle
         decision["risk_appetite"] = cycle_state.risk_appetite
+        decision["capital_flow_score"] = sector_flow.flow_score if sector_flow else 0.0
+        decision["capital_flow_direction"] = sector_flow.direction if sector_flow else "UNKNOWN"
+        decision["leader_concentration"] = sector_flow.leader_concentration if sector_flow else 0.0
+        decision["rotation_path"] = capital_flow_analysis.rotation_path
         raw_decisions.append(decision)
 
     final_decisions = portfolio_autopilot.apply_constraints(raw_decisions)
@@ -266,7 +304,7 @@ def main() -> None:
     post_snapshot = version_control.snapshot("post_execution")
     audit_summary = audit_engine.summary()
 
-    print("symbol\talpha_score\trisk_score\tmarket_regime\tdominant_narrative\tcycle_state\tsector\tsector_strength\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tactive_agents\tremoved_agents\tnewly_created_agents\tpromoted_agents\tagent_performance_scores\tstructural_changes\tagent_performance_summary\tarbitration_reason\taudit_trail")
+    print("symbol\talpha_score\trisk_score\tmarket_regime\tdominant_narrative\tcycle_state\tsector\tsector_strength\tcapital_flow_score\tflow_direction\tleader_concentration\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tactive_agents\tremoved_agents\tnewly_created_agents\tpromoted_agents\tagent_performance_scores\tstructural_changes\tagent_performance_summary\tarbitration_reason\taudit_trail")
     for decision in v11_decisions:
         sector_payload = decision["sector_context"]
         market_payload = decision["market_intelligence"]
@@ -279,6 +317,9 @@ def main() -> None:
             f"{market_payload['macro_cycle']}/{market_payload['liquidity_cycle']}/{market_payload['risk_appetite']}\t"
             f"{sector_payload['sector']}\t"
             f"{sector_payload['sector_strength']:.2f}\t"
+            f"{float(market_payload['capital_flow_score']):.2f}\t"
+            f"{market_payload['capital_flow_direction']}\t"
+            f"{float(market_payload['leader_concentration']):.2f}\t"
             f"{decision['conflict_detected']}\t"
             f"{decision['final_weighted_decision']}\t"
             f"{decision['final_allocation']:.4f}\t"
