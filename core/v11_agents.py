@@ -228,6 +228,13 @@ class V11AgentOrchestrator:
             "alpha_score": alpha.payload["alpha_score"],
             "risk_score": risk.payload["risk_score"],
             "macro_regime": macro.payload["macro_regime"],
+            "market_intelligence": {
+                "dominant_narrative": decision.get("dominant_narrative", "UNKNOWN"),
+                "narrative_consistency": decision.get("narrative_consistency", "UNKNOWN"),
+                "macro_cycle": decision.get("macro_cycle", "UNKNOWN"),
+                "liquidity_cycle": decision.get("liquidity_cycle", "UNKNOWN"),
+                "risk_appetite": decision.get("risk_appetite", "UNKNOWN"),
+            },
             "sector_context": sector.payload,
             "agent_opinions": arbitration["agent_opinions"],
             "current_agent_weights": current_weights,

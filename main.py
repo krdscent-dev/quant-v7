@@ -25,6 +25,21 @@ from core.v10_sector_engine import V10SectorEngine
 from core.v10_version_control import V10VersionControl
 from core.v10_weekly_report import load_or_build_rankings
 from core.v11_agents import V11AgentOrchestrator
+from market.capital_flow_engine import CapitalFlowEngine
+from market.cycle_engine import CycleEngine
+from market.market_structure_engine import MarketStructureEngine
+from market.narrative_engine import NarrativeEngine
+
+
+class _V12RegimeAdapter:
+    """Expose V12 market structure through the legacy regime interface."""
+
+    def __init__(self, market_structure: Any, fallback_regime: Any) -> None:
+        self.regime = market_structure.regime
+        self.trend = market_structure.trend
+        self.volatility = market_structure.volatility
+        self.confidence = market_structure.confidence
+        self.reason = f"{market_structure.reason} Legacy reference: {getattr(fallback_regime, 'regime', 'UNKNOWN')}."
 
 
 def _confidence_from_result(result: Any) -> float:
@@ -125,8 +140,24 @@ def main() -> None:
     cognitive_graph = V10CognitiveGraph()
     sector_context = sector_engine.build_sector_context()
     market_data = _market_snapshot(ranked)
-    regime_result = regime_engine.classify(market_data)
+    legacy_regime_result = regime_engine.classify(market_data)
+    market_structure = MarketStructureEngine().classify(market_data)
+    capital_flows = CapitalFlowEngine().rank_flows(sector_engine.sector_scores)
+    narrative = NarrativeEngine().extract(capital_flows, ranked)
+    cycle_state = CycleEngine().detect(market_structure)
+    regime_result = _V12RegimeAdapter(market_structure, legacy_regime_result)
 
+    print("V12 Market Intelligence:")
+    print(f"market_regime\t{market_structure.regime}\ttrend={market_structure.trend:.2f}\tvolatility={market_structure.volatility:.2f}\tconfidence={market_structure.confidence:.2f}")
+    print(f"market_reason\t{market_structure.reason}")
+    print(f"dominant_narrative\t{narrative.dominant_narrative}")
+    print(f"narrative_consistency\t{narrative.consistency}")
+    print(f"cycle_state\tmacro={cycle_state.macro_cycle}\tliquidity={cycle_state.liquidity_cycle}\trisk_appetite={cycle_state.risk_appetite}")
+    print("capital_flow_ranking")
+    print("rank\tsector\tflow_score\tdirection")
+    for flow in capital_flows:
+        print(f"{flow.rank}\t{flow.sector}\t{flow.flow_score:.2f}\t{flow.direction}")
+    print("")
     print(f"Market Regime: {regime_result.regime} (trend={regime_result.trend:.2f}, volatility={regime_result.volatility:.2f})")
     print(f"Regime Reason: {regime_result.reason}")
     print("")
@@ -169,10 +200,22 @@ def main() -> None:
                 "chain_strength": causal.chain_strength,
                 "confidence_bias": learning_context.get("confidence_bias", 0.0),
                 "confidence_sensitivity": learning_context.get("confidence_sensitivity", 1.0),
+                "dominant_narrative": narrative.dominant_narrative,
+                "narrative_consistency": narrative.consistency,
+                "supporting_themes": narrative.supporting_themes,
+                "macro_cycle": cycle_state.macro_cycle,
+                "liquidity_cycle": cycle_state.liquidity_cycle,
+                "risk_appetite": cycle_state.risk_appetite,
                 **item_sector_context,
             },
         )
         decision["score"] = round(float(getattr(item, "strategic_score", 0.0)), 2)
+        decision["dominant_narrative"] = narrative.dominant_narrative
+        decision["narrative_consistency"] = narrative.consistency
+        decision["supporting_themes"] = narrative.supporting_themes
+        decision["macro_cycle"] = cycle_state.macro_cycle
+        decision["liquidity_cycle"] = cycle_state.liquidity_cycle
+        decision["risk_appetite"] = cycle_state.risk_appetite
         raw_decisions.append(decision)
 
     final_decisions = portfolio_autopilot.apply_constraints(raw_decisions)
@@ -218,14 +261,17 @@ def main() -> None:
     post_snapshot = version_control.snapshot("post_execution")
     audit_summary = audit_engine.summary()
 
-    print("symbol\talpha_score\trisk_score\tmacro_regime\tsector\tsector_strength\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tactive_agents\tremoved_agents\tnewly_created_agents\tpromoted_agents\tagent_performance_scores\tstructural_changes\tagent_performance_summary\tarbitration_reason\taudit_trail")
+    print("symbol\talpha_score\trisk_score\tmarket_regime\tdominant_narrative\tcycle_state\tsector\tsector_strength\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tactive_agents\tremoved_agents\tnewly_created_agents\tpromoted_agents\tagent_performance_scores\tstructural_changes\tagent_performance_summary\tarbitration_reason\taudit_trail")
     for decision in v11_decisions:
         sector_payload = decision["sector_context"]
+        market_payload = decision["market_intelligence"]
         print(
             f"{decision['symbol']}\t"
             f"{decision['alpha_score']:.2f}\t"
             f"{decision['risk_score']:.2f}\t"
             f"{decision['macro_regime']}\t"
+            f"{market_payload['dominant_narrative']}\t"
+            f"{market_payload['macro_cycle']}/{market_payload['liquidity_cycle']}/{market_payload['risk_appetite']}\t"
             f"{sector_payload['sector']}\t"
             f"{sector_payload['sector_strength']:.2f}\t"
             f"{decision['conflict_detected']}\t"
