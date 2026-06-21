@@ -152,26 +152,26 @@
 ### Pending Proposal Preview
 | proposal_id | type | target | current | proposed | status | reason |
 |---|---|---|---:|---:|---|---|
-| prop_f8da934753194b90a14b369c92833a33 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_e9f5bae5982a4448b3238ded8505aa85 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_74c89e2beb364f5aab6b622f575a5085 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_f8748ee4e91e4ab58e842580c8177435 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_eeb07b355a3349c9a4cad55b921ad9ff | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_ed11b1beaa4d4f38b2824424e9cfb089 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_af2260fb1322432288cec44afd867776 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_9038edd1067f47db84ce09e2c6183e63 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_3d44ca903e934a96965732616f0c6b89 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_ac2746cb02644cc4b41d149fb1b7e0d6 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_4af4128d7d2d4eef99e497062461e454 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_8aa37ace14f4482786010e287e2910ac | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_f0c2be89f88c4dd3b0f7ff8bc17dfa56 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_774fcfe68b594f11a6e400ad18b0279d | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_964209fe03864c1cb77e85c2072b7bc3 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_b91c9f605c9e4a96aee8e26b4ec88e1b | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_026cd529c61c4fdf81e808fcb86fa1a9 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_66eaea7df70049729ed05a16058d02af | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
-| prop_959ff52595f248dfa100cab8b77a421f | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
-| prop_7590e8775aa3492789276612adc909ce | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_d584ae0a63f2476399e7598d9fb550ba | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_342e79643c5545f59d2eb1decc6fe2cb | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_8c7ba31457a54d39a58a05486c7ab229 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_1a672e7538e4448982baed5222aa3cf7 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_6255281a35444772b6204f775ec8608e | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_e21e5af201c74dcd85366619d375694f | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_4e49b127edd14512b7824dac1e765790 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_42f7238de8684fe2af6e3bfb5e219c67 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_fe73b03b81874d93b44c3211616fad93 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_aea662d402c641cd969e71dd97f1a9a2 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_dcc39c746cf54159b73349d364e56536 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_1dabfaa0a40c4ff8a2dfb542d73ad737 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_aefd6a08d77e4771a13b7a1c61a6c594 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_16a69a9958724d65b8a629b54996d02e | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_2ced0acb3fcf455e85dc0c3d4b924500 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_886c22454b6946369df618d233adf3ce | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_31f04dc3a39846f0bdfa463d5efc6d3f | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_933672b5de71447c93afbb4f0ddcdfb2 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
+| prop_a39240eb5dd84e828b81198949fb4285 | CONFIDENCE_BIAS_CHANGE | confidence_bias | 0.2000 | 0.2000 | PENDING | Low-confidence win suggests increasing confidence bias. |
+| prop_84d053d2672343eeaec43f3ac4ee5f38 | CONFIDENCE_SENSITIVITY_CHANGE | confidence_sensitivity | 1.3200 | 1.3300 | PENDING | Low-confidence win suggests higher confidence sensitivity. |
 
 ### Model Bias Detection
 - dominant_factor: order_confirmation_score
@@ -185,14 +185,18 @@
 
 ## 8. AUDIT & GOVERNANCE SUMMARY
 ### Audit Summary
-- recent audit events: 4
-- event counts: {'PROPOSALS_GENERATED': 1, 'HUMAN_REVIEW_COMPLETED': 1, 'GOVERNANCE_VALIDATED': 1, 'EXECUTION_SKIPPED': 1}
+- recent audit events: 32
+- event counts: {'PROPOSALS_GENERATED': 3, 'HUMAN_REVIEW_COMPLETED': 3, 'GOVERNANCE_VALIDATED': 3, 'EXECUTION_SKIPPED': 3, 'V11_AGENT_DECISION': 20}
 
 ### Version Changes
 | version_id | label | created_at |
 |---|---|---|
 | v10_20260621_114541_802055_pre_governance | pre_governance | 2026-06-21T11:45:41.802500 |
 | v10_20260621_114541_807630_post_execution | post_execution | 2026-06-21T11:45:41.808026 |
+| v10_20260621_115528_523789_pre_governance | pre_governance | 2026-06-21T11:55:28.524302 |
+| v10_20260621_115528_531774_post_execution | post_execution | 2026-06-21T11:55:28.532195 |
+| v10_20260621_120353_784634_pre_governance | pre_governance | 2026-06-21T12:03:53.785414 |
+| v10_20260621_120353_797510_post_execution | post_execution | 2026-06-21T12:03:53.798105 |
 
 ### Top Modifications
 - No approved modifications were applied in unattended mode.
@@ -200,3 +204,17 @@
 
 ### Risk Events
 - No audit risk events in recent logs.
+
+## 9. V11 MULTI-AGENT DECISION SUMMARY
+| symbol | macro regime | sector | alpha score | risk score | conflict | final action | final allocation | arbitration reason |
+|---|---|---|---:|---:|---|---|---:|---|
+| 603595.SH | BEAR | Huawei Ascend Ecosystem | 1.00 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 688041.SH | BEAR | Huawei Ascend Ecosystem | 0.91 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 002371.SZ | BEAR | Huawei Ascend Ecosystem | 1.00 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 600460.SH | BEAR | Domestic Substitution | 1.00 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 688012.SH | BEAR | Domestic Substitution | 0.91 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 002156.SZ | BEAR | Advanced Packaging | 1.00 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 600584.SH | BEAR | Advanced Packaging | 0.91 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 000977.SZ | BEAR | AI Computing | 1.00 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 300308.SZ | BEAR | AI Computing | 0.91 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |
+| 600703.SH | BEAR | Advanced Materials | 1.00 | 0.19 | True | HOLD | 0.0000 | Conflict unresolved by weighted score; HOLD fallback applied. |

@@ -449,6 +449,40 @@ def generate_v10_decision_audit_report(base_dir: Path | None = None) -> Path:
             lines.append(f"- {event.get('event_type')}: {event.get('payload')}")
     else:
         lines.append("- No audit risk events in recent logs.")
+    lines.append("")
+    lines.append("## 9. V11 MULTI-AGENT DECISION SUMMARY")
+    v11_events = [
+        event
+        for event in V10AuditEngine(root / "reports" / "audit" / "v10_audit_log.jsonl").read_recent(100)
+        if event.get("event_type") == "V11_AGENT_DECISION"
+    ]
+    v11_1_events = [
+        event
+        for event in v11_events
+        if "conflict_detected"
+        in event.get("payload", {}).get("agents", {}).get("DecisionArbitrator", {})
+    ]
+    if v11_1_events:
+        v11_events = v11_1_events
+    if v11_events:
+        lines.append("| symbol | macro regime | sector | alpha score | risk score | conflict | final action | final allocation | arbitration reason |")
+        lines.append("|---|---|---|---:|---:|---|---|---:|---|")
+        for event in v11_events[-20:]:
+            payload = event.get("payload", {})
+            agents = payload.get("agents", {})
+            macro = agents.get("MacroAgent", {})
+            sector = agents.get("SectorAgent", {})
+            alpha = agents.get("AlphaAgent", {})
+            risk = agents.get("RiskAgent", {})
+            arbitrator = agents.get("DecisionArbitrator", agents.get("PortfolioAgent", {}))
+            lines.append(
+                f"| {payload.get('symbol', '')} | {macro.get('macro_regime', '')} | {sector.get('sector', '')} | "
+                f"{float(alpha.get('alpha_score', 0.0)):.2f} | {float(risk.get('risk_score', 0.0)):.2f} | "
+                f"{arbitrator.get('conflict_detected', '')} | {arbitrator.get('final_decision', arbitrator.get('final_action', ''))} | "
+                f"{float(arbitrator.get('final_allocation', 0.0)):.4f} | {arbitrator.get('arbitration_reason', '')} |"
+            )
+    else:
+        lines.append("- No V11 agent decisions logged yet.")
 
     output_dir = root / "reports" / "weekly"
     output_dir.mkdir(parents=True, exist_ok=True)

@@ -24,6 +24,7 @@ from core.v10_self_learning_engine import V10SelfLearningEngine
 from core.v10_sector_engine import V10SectorEngine
 from core.v10_version_control import V10VersionControl
 from core.v10_weekly_report import load_or_build_rankings
+from core.v11_agents import V11AgentOrchestrator
 
 
 def _confidence_from_result(result: Any) -> float:
@@ -72,6 +73,7 @@ def main() -> None:
     )
     learning_context = self_learning_engine.adaptive_context()
     sector_engine = V10SectorEngine.from_results(ranked)
+    v11_orchestrator = V11AgentOrchestrator(sector_engine, audit_engine)
     cognitive_graph = V10CognitiveGraph()
     sector_context = sector_engine.build_sector_context()
     market_data = _market_snapshot(ranked)
@@ -126,6 +128,10 @@ def main() -> None:
         raw_decisions.append(decision)
 
     final_decisions = portfolio_autopilot.apply_constraints(raw_decisions)
+    v11_decisions = [
+        v11_orchestrator.run(decision, regime_result)
+        for decision in final_decisions
+    ]
     performance_log = self_learning_engine.evaluate_decision(final_decisions)
     pre_snapshot = version_control.snapshot("pre_governance")
     proposals = proposal_engine.generate_proposals(
@@ -163,18 +169,22 @@ def main() -> None:
     post_snapshot = version_control.snapshot("post_execution")
     audit_summary = audit_engine.summary()
 
-    print("symbol\tsector\taction\tconfidence\tportfolio_exposure\trisk_score\tcausal_chain\tbottleneck_node\treason")
-    for decision in final_decisions:
+    print("symbol\talpha_score\trisk_score\tmacro_regime\tsector\tsector_strength\tconflict\tfinal_action\tfinal_allocation\tagent_opinions\tarbitration_reason\taudit_trail")
+    for decision in v11_decisions:
+        sector_payload = decision["sector_context"]
         print(
             f"{decision['symbol']}\t"
-            f"{decision['sector']}\t"
-            f"{decision['action']}\t"
-            f"{decision['confidence']:.2f}\t"
-            f"{decision['portfolio_exposure']:.2f}\t"
+            f"{decision['alpha_score']:.2f}\t"
             f"{decision['risk_score']:.2f}\t"
-            f"{' -> '.join(decision['causal_chain']) if decision['causal_chain'] else 'NONE'}\t"
-            f"{decision['bottleneck_node']}\t"
-            f"{decision['reason']} {decision['portfolio_reason']}"
+            f"{decision['macro_regime']}\t"
+            f"{sector_payload['sector']}\t"
+            f"{sector_payload['sector_strength']:.2f}\t"
+            f"{decision['conflict_detected']}\t"
+            f"{decision['final_action']}\t"
+            f"{decision['final_allocation']:.4f}\t"
+            f"{decision['agent_opinions']}\t"
+            f"{decision['arbitration_reason']}\t"
+            f"{decision['audit_trail']['event_type']}@{decision['audit_trail']['timestamp']}"
         )
 
     print("")
