@@ -26,6 +26,9 @@ from core.v10_version_control import V10VersionControl
 from core.v10_weekly_report import load_or_build_rankings
 from core.main_orchestrator import MainOrchestrator
 from core.v11_agents import V11AgentOrchestrator
+from analytics.attribution_engine import AttributionEngine
+from backtest.v12_6_backtest_engine import V126BacktestEngine
+from logs.trade_logger import TradeLogger
 from market.v12_1_structure_engine import analyze_market_structure
 from market.v12_2_capital_flow_engine import V122CapitalFlowEngine
 from market.v12_3_narrative_engine import V123NarrativeEngine
@@ -361,6 +364,44 @@ def main() -> None:
                 "reason": proposal.reason,
             }
         )
+
+    trade_logger = TradeLogger(base_dir / "logs" / "trade_log_v12_6.jsonl")
+    attribution_engine = AttributionEngine()
+    v126_engine = V126BacktestEngine(
+        trade_logger=trade_logger,
+        attribution_engine=attribution_engine,
+    )
+    v126_result = v126_engine.simulate(
+        market_state=orchestration.market_state,
+        capital_state=capital_state,
+        decisions=final_decisions,
+        v11_decisions=v11_decisions,
+    )
+
+    print("")
+    print("V12.6 Full System Backtest:")
+    print(f"period\t{v126_result.period}")
+    print(f"total_return\t{v126_result.total_return:.4f}")
+    print(f"max_drawdown\t{v126_result.max_drawdown:.4f}")
+    print(f"win_rate\t{v126_result.win_rate:.4f}")
+    print(f"trade_count\t{v126_result.trade_count}")
+    print("layer_attribution")
+    for layer, value in v126_result.layer_attribution.items():
+        print(f"{layer}\t{value:.6f}")
+    print("equity_curve")
+    for item in v126_result.equity_curve[:10]:
+        print(
+            f"{item['date']}\t"
+            f"equity={float(item['equity']):.4f}\t"
+            f"daily_return={float(item['daily_return']):.4f}\t"
+            f"drawdown={float(item['drawdown']):.4f}"
+        )
+    print("trade_log_path")
+    print(trade_logger.path)
+    if v126_result.warnings:
+        print("backtest_warnings")
+        for warning in v126_result.warnings[:10]:
+            print(f"- {warning}")
 
 
 if __name__ == "__main__":
