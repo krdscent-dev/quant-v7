@@ -1,0 +1,20 @@
+{
+  "factor_weights": {
+    "tau_factor_score": 0.1807,
+    "supernode_score": 0.1807,
+    "domestic_substitution_score": 0.1807,
+    "advanced_packaging_score": 0.1355,
+    "order_confirmation_score": 0.2529,
+    "advanced_material_score": 0.0696
+  },
+  "confidence_bias": 0.0,
+  "confidence_sensitivity": 1.0,
+  "model_bias": {
+    "dominant_factor": "order_confirmation_score",
+    "weakest_factor": "advanced_material_score",
+    "confidence_bias": "neutral",
+    "factor_concentration_bias": "normal"
+  },
+  "last_updates": [],
+  "updated_at": "2026-06-21T20:11:01.279563"
+}

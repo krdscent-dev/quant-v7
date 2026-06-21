@@ -1,0 +1,29 @@
+{
+  "factor_weights": {
+    "tau_factor_score": 0.204,
+    "supernode_score": 0.199,
+    "domestic_substitution_score": 0.199,
+    "advanced_packaging_score": 0.1493,
+    "order_confirmation_score": 0.1493,
+    "advanced_material_score": 0.0995
+  },
+  "confidence_bias": 0.0,
+  "confidence_sensitivity": 1.0,
+  "model_bias": {
+    "dominant_factor": "tau_factor_score",
+    "weakest_factor": "advanced_material_score",
+    "confidence_bias": "neutral",
+    "factor_concentration_bias": "normal"
+  },
+  "last_updates": [
+    {
+      "proposal_id": "prop_557cd8a0e6694739837a508f2e549c32",
+      "type": "FACTOR_WEIGHT_CHANGE",
+      "target": "tau_factor_score",
+      "before": 0.2,
+      "after": 0.205,
+      "reason": "WIN case suggests increase for tau_factor_score."
+    }
+  ],
+  "updated_at": "2026-06-21T20:11:01.401174"
+}
