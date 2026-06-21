@@ -27,8 +27,8 @@ from core.v10_weekly_report import load_or_build_rankings
 from core.v11_agents import V11AgentOrchestrator
 from market.capital_flow_engine import CapitalFlowEngine
 from market.cycle_engine import CycleEngine
-from market.market_structure_engine import MarketStructureEngine
 from market.narrative_engine import NarrativeEngine
+from market.v12_1_structure_engine import analyze_market_structure
 
 
 class _V12RegimeAdapter:
@@ -64,7 +64,8 @@ def _market_snapshot(results: list[Any]) -> dict[str, float]:
     avg_conf = mean(confidences) if confidences else 0.0
     trend = max(0.0, min(1.0, top_score / 100.0))
     volatility = max(0.0, min(1.0, score_spread / 100.0 + (1.0 - avg_conf) * 0.35))
-    return {"trend": trend, "volatility": volatility}
+    momentum = max(0.0, min(1.0, (top_score - mean(scores)) / 100.0 + avg_conf * 0.30))
+    return {"trend": trend, "volatility": volatility, "price_momentum": momentum}
 
 
 def _agent_performance_from_decisions(decisions: list[dict[str, Any]], regime: str) -> list[dict[str, Any]]:
@@ -141,14 +142,18 @@ def main() -> None:
     sector_context = sector_engine.build_sector_context()
     market_data = _market_snapshot(ranked)
     legacy_regime_result = regime_engine.classify(market_data)
-    market_structure = MarketStructureEngine().classify(market_data)
+    market_structure = analyze_market_structure(
+        trend_score=market_data["trend"],
+        volatility=market_data["volatility"],
+        price_momentum=market_data["price_momentum"],
+    )
     capital_flows = CapitalFlowEngine().rank_flows(sector_engine.sector_scores)
     narrative = NarrativeEngine().extract(capital_flows, ranked)
     cycle_state = CycleEngine().detect(market_structure)
     regime_result = _V12RegimeAdapter(market_structure, legacy_regime_result)
 
     print("V12 Market Intelligence:")
-    print(f"market_regime\t{market_structure.regime}\ttrend={market_structure.trend:.2f}\tvolatility={market_structure.volatility:.2f}\tconfidence={market_structure.confidence:.2f}")
+    print(f"market_regime\t{market_structure.regime}\ttrend={market_structure.trend_score:.2f}\tvolatility={market_structure.volatility:.2f}\tmomentum={market_structure.price_momentum:.2f}\tvolatility_state={market_structure.volatility_state}\tstructure_strength={market_structure.structure_strength:.2f}\tconfidence={market_structure.confidence:.2f}")
     print(f"market_reason\t{market_structure.reason}")
     print(f"dominant_narrative\t{narrative.dominant_narrative}")
     print(f"narrative_consistency\t{narrative.consistency}")
