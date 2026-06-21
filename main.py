@@ -33,6 +33,10 @@ from diagnosis.repair_engine import RepairEngine
 from diagnosis.v12_7_health_monitor import HealthMonitor
 from logs.trade_logger import TradeLogger
 from repair_loop.repair_orchestrator import RepairOrchestrator
+from production.circuit_breaker import CircuitBreaker
+from production.latency_controller import LatencyController
+from production.stability_monitor import StabilityMonitor
+from production.stress_guard import StressGuard
 from market.v12_1_structure_engine import analyze_market_structure
 from market.v12_2_capital_flow_engine import V122CapitalFlowEngine
 from market.v12_3_narrative_engine import V123NarrativeEngine
@@ -519,6 +523,80 @@ def main() -> None:
         print("post_fix_total_return\tPENDING_APPROVAL")
         print("post_fix_max_drawdown\tPENDING_APPROVAL")
         print("post_fix_win_rate\tPENDING_APPROVAL")
+
+    stability_monitor = StabilityMonitor()
+    latency_controller = LatencyController()
+    stress_guard = StressGuard()
+    circuit_breaker = CircuitBreaker()
+    stability_report = stability_monitor.assess(
+        trade_logs,
+        v11_decisions,
+        {
+            "comparison": repair_loop_report.comparison,
+            "approval_status": repair_loop_report.approval.status,
+        },
+    )
+    timeline_end = v126_result.period.split("->")[-1]
+    market_timestamp = f"{timeline_end}T16:00:00"
+    latency_report = latency_controller.assess(
+        market_timestamp,
+        market_timestamp,
+        market_timestamp,
+    )
+    stress_report = stress_guard.assess(
+        {
+            "total_return": v126_result.total_return,
+            "max_drawdown": v126_result.max_drawdown,
+            "win_rate": v126_result.win_rate,
+        },
+        {
+            "status": health_report.status,
+            "score": health_report.score,
+        },
+        {
+            "status": stability_report.status,
+            "drift_score": stability_report.drift_score,
+        },
+        {
+            "regime": market_structure.regime,
+            "latency_status": latency_report.status,
+        },
+    )
+    breaker_decision = circuit_breaker.decide(
+        {
+            "status": stability_report.status,
+        },
+        {
+            "status": latency_report.status,
+            "synchronization_status": latency_report.synchronization_status,
+        },
+        {
+            "state": stress_report.state,
+            "stress_score": stress_report.stress_score,
+        },
+    )
+
+    print("")
+    print("V12.9 Production Hardening:")
+    print(f"system_stability_status\t{stability_report.status}")
+    print(f"stability_drift_score\t{stability_report.drift_score:.4f}")
+    print(f"stability_inconsistency_score\t{stability_report.inconsistency_score:.4f}")
+    print(f"stability_sync_score\t{stability_report.sync_score:.4f}")
+    print(f"latency_check_result\t{latency_report.status}")
+    print(f"latency_sync_status\t{latency_report.synchronization_status}")
+    print(f"latest_market_age_minutes\t{latency_report.latest_market_age_minutes:.2f}")
+    print(f"decision_lag_minutes\t{latency_report.decision_lag_minutes:.2f}")
+    print(f"execution_lag_minutes\t{latency_report.execution_lag_minutes:.2f}")
+    print(f"stress_state\t{stress_report.state}")
+    print(f"stress_severity\t{stress_report.severity}")
+    print(f"stress_score\t{stress_report.stress_score:.4f}")
+    print(f"circuit_breaker_action\t{breaker_decision.final_allowed_action}")
+    print(f"circuit_breaker_override\t{breaker_decision.override}")
+    print(f"circuit_breaker_reason\t{breaker_decision.reason}")
+    print("production_warnings")
+    for warning in sorted(set(stability_report.warnings + latency_report.warnings + stress_report.warnings + breaker_decision.warnings)):
+        print(f"- {warning}")
+    print(f"final_allowed_action\t{breaker_decision.final_allowed_action}")
 
 
 if __name__ == "__main__":
