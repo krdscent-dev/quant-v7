@@ -117,12 +117,20 @@ class PortfolioAgent:
         sector: AgentOutput,
         alpha: AgentOutput,
         risk: AgentOutput,
+        cycle: Mapping[str, Any] | None = None,
     ) -> AgentOutput:
         action = str(base_decision.get("action", "OBSERVE"))
         alpha_score = float(alpha.payload["alpha_score"])
         risk_score = float(risk.payload["risk_score"])
         regime = str(macro.payload["macro_regime"])
         sector_strength = float(sector.payload["sector_strength"])
+        cycle = dict(cycle or {})
+        risk_appetite = str(cycle.get("risk_appetite", "SELECTIVE"))
+        combined_cycle_state = str(cycle.get("combined_cycle_state", "UNKNOWN"))
+        aggressiveness = float(cycle.get("aggressiveness", 1.0) or 1.0)
+        liquidity_cycle = str(cycle.get("liquidity_cycle", "UNKNOWN"))
+        sentiment_cycle = str(cycle.get("sentiment_cycle", "UNKNOWN"))
+        industry_cycle = str(cycle.get("industry_cycle", "UNKNOWN"))
 
         if risk.payload["risk_action"] == "REDUCE":
             final_action = "REDUCE"
@@ -140,6 +148,24 @@ class PortfolioAgent:
             final_action = "OBSERVE"
             allocation = 0.0
 
+        if risk_appetite in {"RISING", "AGGRESSIVE"} and final_action in {"HOLD", "OBSERVE"} and alpha_score >= 0.70:
+            final_action = "SMALL_ADD"
+            allocation = 0.04
+        elif risk_appetite in {"RISING", "AGGRESSIVE"} and final_action == "SMALL_ADD" and alpha_score >= 0.82:
+            final_action = "ADD"
+            allocation = 0.08
+        elif risk_appetite in {"FALLING", "DEFENSIVE"} and final_action == "ADD":
+            final_action = "SMALL_ADD"
+            allocation = 0.03
+        elif risk_appetite in {"FALLING", "DEFENSIVE"} and final_action == "SMALL_ADD":
+            final_action = "HOLD" if alpha_score >= 0.65 else "OBSERVE"
+            allocation = 0.0
+        elif combined_cycle_state == "STRESS" and final_action in {"HOLD", "SMALL_ADD", "ADD"}:
+            final_action = "OBSERVE"
+            allocation = 0.0
+
+        allocation = max(0.0, allocation * max(0.65, min(1.20, aggressiveness)))
+
         risk_adjusted = max(0.0, allocation * (1.0 - risk_score))
         return AgentOutput(
             agent_name="PortfolioAgent",
@@ -152,6 +178,11 @@ class PortfolioAgent:
                     "alpha_score": round(alpha_score, 2),
                     "risk_score": round(risk_score, 2),
                     "sector_strength": round(sector_strength, 2),
+                    "risk_appetite": risk_appetite,
+                    "combined_cycle_state": combined_cycle_state,
+                    "liquidity_cycle": liquidity_cycle,
+                    "sentiment_cycle": sentiment_cycle,
+                    "industry_cycle": industry_cycle,
                 },
             },
         )
@@ -198,7 +229,14 @@ class V11AgentOrchestrator:
         sector = self.sector_agent.evaluate(symbol)
         alpha = self.alpha_agent.evaluate({**decision, **sector.payload})
         risk = self.risk_agent.evaluate(decision)
-        portfolio = self.portfolio_agent.evaluate(decision, macro, sector, alpha, risk)
+        portfolio = self.portfolio_agent.evaluate(
+            decision,
+            macro,
+            sector,
+            alpha,
+            risk,
+            cycle=decision.get("cycle_state"),
+        )
         agent_payloads = {
             "MacroAgent": macro.payload,
             "SectorAgent": sector.payload,
@@ -236,7 +274,11 @@ class V11AgentOrchestrator:
                 "narrative_consistency": decision.get("narrative_consistency", "UNKNOWN"),
                 "macro_cycle": decision.get("macro_cycle", "UNKNOWN"),
                 "liquidity_cycle": decision.get("liquidity_cycle", "UNKNOWN"),
+                "sentiment_cycle": decision.get("sentiment_cycle", "UNKNOWN"),
+                "industry_cycle": decision.get("industry_cycle", "UNKNOWN"),
                 "risk_appetite": decision.get("risk_appetite", "UNKNOWN"),
+                "combined_cycle_state": decision.get("combined_cycle_state", decision.get("macro_cycle", "UNKNOWN")),
+                "cycle_aggressiveness": decision.get("cycle_aggressiveness", 1.0),
                 "capital_flow_score": decision.get("capital_flow_score", 0.0),
                 "capital_flow_direction": decision.get("capital_flow_direction", "UNKNOWN"),
                 "leader_concentration": decision.get("leader_concentration", 0.0),

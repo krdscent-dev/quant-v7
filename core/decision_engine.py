@@ -158,6 +158,68 @@ class DecisionEngine:
             return action
         return action
 
+    def _apply_cycle(
+        self,
+        action: str,
+        score: float,
+        cycle_state: str,
+        risk_appetite: str,
+        liquidity_cycle: str,
+        sentiment_cycle: str,
+        industry_cycle: str,
+    ) -> tuple[str, str]:
+        """Use V12.4 cycle context to adjust aggressiveness without changing validity."""
+
+        if risk_appetite in {"RISING", "AGGRESSIVE"} or cycle_state in {"RISK_ON", "SUPPORTIVE"}:
+            if action == InvestmentActionLanguage.OBSERVE.value and score >= 55:
+                return (
+                    InvestmentActionLanguage.HOLD.value,
+                    " Cycle risk appetite rising; OBSERVE upgraded to HOLD.",
+                )
+            if action == InvestmentActionLanguage.HOLD.value and score >= 70:
+                return (
+                    InvestmentActionLanguage.SMALL_ADD.value,
+                    " Cycle support is improving; HOLD upgraded to SMALL_ADD.",
+                )
+            if action == InvestmentActionLanguage.SMALL_ADD.value and score >= 85 and industry_cycle in {"EARLY_GROWTH", "EXPANSION"}:
+                return (
+                    InvestmentActionLanguage.ADD.value,
+                    " Strong cycle backdrop allows SMALL_ADD to scale to ADD.",
+                )
+
+        if risk_appetite in {"FALLING", "DEFENSIVE"} or cycle_state in {"DEFENSIVE", "STRESS"}:
+            if action in {InvestmentActionLanguage.ADD.value, InvestmentActionLanguage.BUY.value}:
+                return (
+                    InvestmentActionLanguage.SMALL_ADD.value,
+                    " Cycle risk appetite is falling; ADD reduced to SMALL_ADD.",
+                )
+            if action == InvestmentActionLanguage.SMALL_ADD.value:
+                return (
+                    InvestmentActionLanguage.HOLD.value,
+                    " Defensive cycle lowers SMALL_ADD to HOLD.",
+                )
+            if action == InvestmentActionLanguage.HOLD.value and sentiment_cycle == "PANIC":
+                return (
+                    InvestmentActionLanguage.OBSERVE.value,
+                    " Panic sentiment keeps HOLD in OBSERVE mode.",
+                )
+
+        if sentiment_cycle == "PANIC" and action in {
+            InvestmentActionLanguage.ADD.value,
+            InvestmentActionLanguage.BUY.value,
+            InvestmentActionLanguage.SMALL_ADD.value,
+        }:
+            return (
+                InvestmentActionLanguage.OBSERVE.value,
+                " Panic sentiment downgrades risk-on action to OBSERVE.",
+            )
+        if liquidity_cycle == "EXPANSION" and action == InvestmentActionLanguage.OBSERVE.value and score >= 65:
+            return (
+                InvestmentActionLanguage.HOLD.value,
+                " Expanding liquidity upgrades OBSERVE to HOLD.",
+            )
+        return action, " Cycle context does not change action."
+
     def _apply_confidence(self, action: str, confidence: float) -> str:
         if confidence < 0.20:
             if action == "HOLD":
@@ -184,6 +246,11 @@ class DecisionEngine:
             confidence * float(context.get("confidence_sensitivity", 1.0) or 1.0)
             + float(context.get("confidence_bias", 0.0) or 0.0)
         )
+        cycle_state = str(context.get("combined_cycle_state", context.get("macro_cycle", "UNKNOWN")) or "UNKNOWN")
+        risk_appetite = str(context.get("risk_appetite", "SELECTIVE") or "SELECTIVE")
+        liquidity_cycle = str(context.get("liquidity_cycle", "UNKNOWN") or "UNKNOWN")
+        sentiment_cycle = str(context.get("sentiment_cycle", "UNKNOWN") or "UNKNOWN")
+        industry_cycle = str(context.get("industry_cycle", "UNKNOWN") or "UNKNOWN")
         sector = str(context.get("sector", "UNKNOWN"))
         sector_strength = self._clamp(float(context.get("sector_strength", 0.0) or 0.0))
         leader_flag = bool(context.get("sector_leader_flag", context.get("leader_flag", False)))
@@ -229,6 +296,16 @@ class DecisionEngine:
         )
         reason = f"{reason}{sector_reason}"
         action = self._apply_regime(action, regime_name)
+        action, cycle_reason = self._apply_cycle(
+            action=action,
+            score=score,
+            cycle_state=cycle_state,
+            risk_appetite=risk_appetite,
+            liquidity_cycle=liquidity_cycle,
+            sentiment_cycle=sentiment_cycle,
+            industry_cycle=industry_cycle,
+        )
+        reason = f"{reason}{cycle_reason}"
         action = self._apply_confidence(action, confidence)
         if action == InvestmentActionLanguage.INVALIDATE.value:
             action = InvestmentActionLanguage.OBSERVE.value
@@ -243,7 +320,9 @@ class DecisionEngine:
             f" Regime={regime_name}; confidence={confidence:.2f}; "
             f"alpha_strength={alpha.strength:.2f}; sector={sector}; "
             f"sector_strength={sector_strength:.2f}; leader={leader_flag}; "
-            f"chain_strength={chain_strength}; bottleneck={bottleneck_node}."
+            f"chain_strength={chain_strength}; bottleneck={bottleneck_node}; "
+            f"cycle_state={cycle_state}; risk_appetite={risk_appetite}; "
+            f"liquidity_cycle={liquidity_cycle}; sentiment_cycle={sentiment_cycle}; industry_cycle={industry_cycle}."
         )
         output = DecisionOutput(
             symbol=str(symbol),

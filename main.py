@@ -25,10 +25,10 @@ from core.v10_sector_engine import V10SectorEngine
 from core.v10_version_control import V10VersionControl
 from core.v10_weekly_report import load_or_build_rankings
 from core.v11_agents import V11AgentOrchestrator
-from market.cycle_engine import CycleEngine
 from market.v12_1_structure_engine import analyze_market_structure
 from market.v12_2_capital_flow_engine import V122CapitalFlowEngine
 from market.v12_3_narrative_engine import V123NarrativeEngine
+from market.v12_4_cycle_engine import V124CycleEngine
 
 
 class _V12RegimeAdapter:
@@ -134,6 +134,52 @@ def _sector_flow_inputs(sector_engine: V10SectorEngine) -> tuple[dict[str, float
     return volume, inflow, outflow, leader_volume
 
 
+def _cycle_inputs(
+    market_structure: Any,
+    capital_flow_analysis: Any,
+    narrative: Any,
+    sector_engine: V10SectorEngine,
+    ranked: list[Any],
+) -> tuple[dict[str, float], dict[str, float], dict[str, float]]:
+    """Build deterministic proxies for liquidity, sentiment, and industry cycles."""
+
+    flow_strength_map = {"STRONG": 0.90, "MEDIUM": 0.65, "WEAK": 0.35}
+    liquidity_score = max(
+        0.0,
+        min(
+            1.0,
+            0.45 * flow_strength_map.get(str(capital_flow_analysis.flow_strength), 0.35)
+            + 0.35 * (1.0 - float(getattr(market_structure, "volatility", 0.0) or 0.0))
+            + 0.20 * float(getattr(market_structure, "structure_strength", 0.5) or 0.5),
+        ),
+    )
+    fear_index = max(
+        0.0,
+        min(
+            100.0,
+            100.0
+            * (
+                0.60 * float(getattr(market_structure, "volatility", 0.0) or 0.0)
+                + 0.40 * (1.0 - float(getattr(narrative, "narrative_strength", 0.0) or 0.0))
+            ),
+        ),
+    )
+    avg_sector_strength = sum(float(value) for value in sector_engine.sector_scores.values()) / max(
+        len(sector_engine.sector_scores), 1
+    )
+    avg_score = sum(float(getattr(item, "strategic_score", 0.0)) for item in ranked) / max(len(ranked), 1)
+    industry_growth = max(
+        0.0,
+        min(1.0, 0.55 * avg_sector_strength + 0.45 * float(getattr(narrative, "narrative_strength", 0.0) or 0.0)),
+    )
+    valuation_score = max(0.0, min(1.0, 1.0 - (avg_score / 100.0)))
+    return (
+        {"liquidity_score": round(liquidity_score, 4)},
+        {"fear_index": round(fear_index, 2)},
+        {"industry_growth": round(industry_growth, 4), "valuation_score": round(valuation_score, 4)},
+    )
+
+
 def main() -> None:
     base_dir = Path(__file__).resolve().parent
     ranked = load_or_build_rankings(base_dir, refresh=os.environ.get("V10_REFRESH") == "1")
@@ -179,7 +225,8 @@ def main() -> None:
         capital_flow_data=capital_flow_analysis,
         market_structure=market_structure,
     )
-    cycle_state = CycleEngine().detect(market_structure)
+    cycle_inputs = _cycle_inputs(market_structure, capital_flow_analysis, narrative, sector_engine, ranked)
+    cycle_state = V124CycleEngine().build_cycle_state(*cycle_inputs)
     regime_result = _V12RegimeAdapter(market_structure, legacy_regime_result)
 
     print("V12 Market Intelligence:")
@@ -190,7 +237,14 @@ def main() -> None:
     print(f"narrative_phase\t{narrative.narrative_phase}")
     print(f"narrative_consistency\t{narrative.consistency}")
     print(f"active_narratives\t{', '.join(item.narrative for item in narrative.active_narratives)}")
-    print(f"cycle_state\tmacro={cycle_state.macro_cycle}\tliquidity={cycle_state.liquidity_cycle}\trisk_appetite={cycle_state.risk_appetite}")
+    print(
+        "cycle_state\t"
+        f"combined={cycle_state.combined_cycle_state}\t"
+        f"liquidity={cycle_state.liquidity_cycle}\t"
+        f"sentiment={cycle_state.sentiment_cycle}\t"
+        f"industry={cycle_state.industry_cycle}\t"
+        f"risk_appetite={cycle_state.risk_appetite}\taggressiveness={cycle_state.aggressiveness:.2f}"
+    )
     print(f"flow_strength\t{capital_flow_analysis.flow_strength}")
     print(f"leader_concentration\t{capital_flow_analysis.leader_concentration:.2f}")
     print(f"rotation_path\t{' -> '.join(capital_flow_analysis.rotation_path)}")
@@ -250,11 +304,27 @@ def main() -> None:
                 "supporting_themes": narrative.supporting_themes,
                 "macro_cycle": cycle_state.macro_cycle,
                 "liquidity_cycle": cycle_state.liquidity_cycle,
+                "sentiment_cycle": cycle_state.sentiment_cycle,
+                "industry_cycle": cycle_state.industry_cycle,
                 "risk_appetite": cycle_state.risk_appetite,
+                "combined_cycle_state": cycle_state.combined_cycle_state,
+                "cycle_aggressiveness": cycle_state.aggressiveness,
                 "capital_flow_score": sector_flow.flow_score if sector_flow else 0.0,
                 "capital_flow_direction": sector_flow.direction if sector_flow else "UNKNOWN",
                 "leader_concentration": sector_flow.leader_concentration if sector_flow else 0.0,
                 "rotation_path": capital_flow_analysis.rotation_path,
+                "cycle_state": {
+                    "liquidity_cycle": cycle_state.liquidity_cycle,
+                    "sentiment_cycle": cycle_state.sentiment_cycle,
+                    "industry_cycle": cycle_state.industry_cycle,
+                    "combined_cycle_state": cycle_state.combined_cycle_state,
+                    "risk_appetite": cycle_state.risk_appetite,
+                    "aggressiveness": cycle_state.aggressiveness,
+                    "liquidity_score": cycle_state.liquidity_score,
+                    "fear_index": cycle_state.fear_index,
+                    "industry_growth": cycle_state.industry_growth,
+                    "valuation_score": cycle_state.valuation_score,
+                },
                 **item_sector_context,
             },
         )
@@ -267,11 +337,27 @@ def main() -> None:
         decision["supporting_themes"] = narrative.supporting_themes
         decision["macro_cycle"] = cycle_state.macro_cycle
         decision["liquidity_cycle"] = cycle_state.liquidity_cycle
+        decision["sentiment_cycle"] = cycle_state.sentiment_cycle
+        decision["industry_cycle"] = cycle_state.industry_cycle
         decision["risk_appetite"] = cycle_state.risk_appetite
+        decision["combined_cycle_state"] = cycle_state.combined_cycle_state
+        decision["cycle_aggressiveness"] = cycle_state.aggressiveness
         decision["capital_flow_score"] = sector_flow.flow_score if sector_flow else 0.0
         decision["capital_flow_direction"] = sector_flow.direction if sector_flow else "UNKNOWN"
         decision["leader_concentration"] = sector_flow.leader_concentration if sector_flow else 0.0
         decision["rotation_path"] = capital_flow_analysis.rotation_path
+        decision["cycle_state"] = {
+            "liquidity_cycle": cycle_state.liquidity_cycle,
+            "sentiment_cycle": cycle_state.sentiment_cycle,
+            "industry_cycle": cycle_state.industry_cycle,
+            "combined_cycle_state": cycle_state.combined_cycle_state,
+            "risk_appetite": cycle_state.risk_appetite,
+            "aggressiveness": cycle_state.aggressiveness,
+            "liquidity_score": cycle_state.liquidity_score,
+            "fear_index": cycle_state.fear_index,
+            "industry_growth": cycle_state.industry_growth,
+            "valuation_score": cycle_state.valuation_score,
+        }
         raw_decisions.append(decision)
 
     final_decisions = portfolio_autopilot.apply_constraints(raw_decisions)
@@ -329,7 +415,7 @@ def main() -> None:
             f"{market_payload['dominant_narrative']}\t"
             f"{float(market_payload['narrative_strength']):.2f}\t"
             f"{market_payload['narrative_phase']}\t"
-            f"{market_payload['macro_cycle']}/{market_payload['liquidity_cycle']}/{market_payload['risk_appetite']}\t"
+            f"{market_payload['combined_cycle_state']}/{market_payload['liquidity_cycle']}/{market_payload['sentiment_cycle']}/{market_payload['industry_cycle']}/{market_payload['risk_appetite']}\t"
             f"{sector_payload['sector']}\t"
             f"{sector_payload['sector_strength']:.2f}\t"
             f"{float(market_payload['capital_flow_score']):.2f}\t"
