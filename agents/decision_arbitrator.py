@@ -13,12 +13,17 @@ class DecisionArbitrator:
     def __init__(self, resolver: ConflictResolver | None = None) -> None:
         self.resolver = resolver or ConflictResolver()
 
-    def arbitrate(self, agent_payloads: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
-        resolution: ConflictResolution = self.resolver.resolve(agent_payloads)
+    def arbitrate(
+        self,
+        agent_payloads: Mapping[str, Mapping[str, Any]],
+        agent_weights: Mapping[str, float] | None = None,
+    ) -> dict[str, Any]:
+        resolution: ConflictResolution = self.resolver.resolve(agent_payloads, agent_weights=agent_weights)
         risk_score = float(agent_payloads.get("RiskAgent", {}).get("risk_score", 0.0) or 0.0)
         allocation = self._allocation_for(resolution.final_decision, risk_score)
         return {
             "agent_opinions": resolution.agent_opinions,
+            "agent_weights": dict(agent_weights or {}),
             "conflict_detected": resolution.conflict_detected,
             "final_decision": resolution.final_decision,
             "final_allocation": allocation,

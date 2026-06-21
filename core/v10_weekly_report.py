@@ -464,9 +464,17 @@ def generate_v10_decision_audit_report(base_dir: Path | None = None) -> Path:
     ]
     if v11_1_events:
         v11_events = v11_1_events
+    v11_2_events = [
+        event
+        for event in v11_events
+        if "agent_weights"
+        in event.get("payload", {}).get("agents", {}).get("DecisionArbitrator", {})
+    ]
+    if v11_2_events:
+        v11_events = v11_2_events
     if v11_events:
-        lines.append("| symbol | macro regime | sector | alpha score | risk score | conflict | final action | final allocation | arbitration reason |")
-        lines.append("|---|---|---|---:|---:|---|---|---:|---|")
+        lines.append("| symbol | macro regime | sector | alpha score | risk score | conflict | final action | final allocation | risk weight | alpha weight | arbitration reason |")
+        lines.append("|---|---|---|---:|---:|---|---|---:|---:|---:|---|")
         for event in v11_events[-20:]:
             payload = event.get("payload", {})
             agents = payload.get("agents", {})
@@ -475,11 +483,14 @@ def generate_v10_decision_audit_report(base_dir: Path | None = None) -> Path:
             alpha = agents.get("AlphaAgent", {})
             risk = agents.get("RiskAgent", {})
             arbitrator = agents.get("DecisionArbitrator", agents.get("PortfolioAgent", {}))
+            weights = arbitrator.get("agent_weights", {})
             lines.append(
                 f"| {payload.get('symbol', '')} | {macro.get('macro_regime', '')} | {sector.get('sector', '')} | "
                 f"{float(alpha.get('alpha_score', 0.0)):.2f} | {float(risk.get('risk_score', 0.0)):.2f} | "
                 f"{arbitrator.get('conflict_detected', '')} | {arbitrator.get('final_decision', arbitrator.get('final_action', ''))} | "
-                f"{float(arbitrator.get('final_allocation', 0.0)):.4f} | {arbitrator.get('arbitration_reason', '')} |"
+                f"{float(arbitrator.get('final_allocation', 0.0)):.4f} | "
+                f"{float(weights.get('RiskAgent', 0.0)):.4f} | {float(weights.get('AlphaAgent', 0.0)):.4f} | "
+                f"{arbitrator.get('arbitration_reason', '')} |"
             )
     else:
         lines.append("- No V11 agent decisions logged yet.")

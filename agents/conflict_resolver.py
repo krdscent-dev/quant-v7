@@ -56,12 +56,17 @@ class ConflictResolver:
             conflicts.append("Risk-off and risk-on opinions coexist.")
         return conflicts
 
-    def resolve(self, agent_payloads: Mapping[str, Mapping[str, Any]]) -> ConflictResolution:
+    def resolve(
+        self,
+        agent_payloads: Mapping[str, Mapping[str, Any]],
+        agent_weights: Mapping[str, float] | None = None,
+    ) -> ConflictResolution:
         opinions = self._extract_opinions(agent_payloads)
         conflicts = self.detect_conflicts(opinions)
+        weights = dict(agent_weights or AGENT_WEIGHTS)
         score = 0.0
         for agent, opinion in opinions.items():
-            score += AGENT_WEIGHTS.get(agent, 0.0) * ACTION_SCORE.get(opinion, 0.0)
+            score += weights.get(agent, 0.0) * ACTION_SCORE.get(opinion, 0.0)
 
         if score >= 0.45:
             decision = "ADD"

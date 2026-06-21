@@ -9,7 +9,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
+from agents.adaptive_governor import AdaptiveGovernor
+from agents.agent_performance_tracker import AgentPerformanceTracker
 from agents.decision_arbitrator import DecisionArbitrator
+from agents.weight_manager import AgentWeightManager
 from core.v10_audit_engine import V10AuditEngine
 from core.v10_portfolio_autopilot import V10PortfolioAutopilot
 from core.v10_sector_engine import V10SectorEngine
@@ -177,9 +180,17 @@ class V11AgentOrchestrator:
         self.risk_agent = RiskAgent()
         self.portfolio_agent = PortfolioAgent()
         self.decision_arbitrator = DecisionArbitrator()
+        self.performance_tracker = AgentPerformanceTracker()
+        self.weight_manager = AgentWeightManager()
+        self.adaptive_governor = AdaptiveGovernor()
         self.audit_agent = AuditAgent(audit_engine)
 
-    def run(self, decision: Mapping[str, Any], regime_result: Any) -> dict[str, Any]:
+    def run(
+        self,
+        decision: Mapping[str, Any],
+        regime_result: Any,
+        agent_performance_log: list[Mapping[str, object]] | None = None,
+    ) -> dict[str, Any]:
         symbol = str(decision.get("symbol", "UNKNOWN"))
         macro = self.macro_agent.evaluate(regime_result)
         sector = self.sector_agent.evaluate(symbol)
@@ -193,7 +204,16 @@ class V11AgentOrchestrator:
             "RiskAgent": risk.payload,
             "PortfolioAgent": portfolio.payload,
         }
-        arbitration = self.decision_arbitrator.arbitrate(agent_payloads)
+        performance_summary = self.performance_tracker.summarize(agent_performance_log)
+        current_weights = self.weight_manager.update_weights(performance_summary)
+        regime_adjusted_weights = self.adaptive_governor.adjust_for_regime(
+            current_weights,
+            str(macro.payload["macro_regime"]),
+        )
+        arbitration = self.decision_arbitrator.arbitrate(
+            agent_payloads,
+            agent_weights=regime_adjusted_weights,
+        )
         arbitrator_output = AgentOutput(
             agent_name="DecisionArbitrator",
             symbol=symbol,
@@ -207,10 +227,21 @@ class V11AgentOrchestrator:
             "macro_regime": macro.payload["macro_regime"],
             "sector_context": sector.payload,
             "agent_opinions": arbitration["agent_opinions"],
+            "current_agent_weights": current_weights,
+            "regime_adjusted_weights": regime_adjusted_weights,
             "conflict_detected": arbitration["conflict_detected"],
             "final_action": arbitration["final_decision"],
             "final_allocation": arbitration["final_allocation"],
+            "final_weighted_decision": arbitration["final_decision"],
             "arbitration_reason": arbitration["arbitration_reason"],
+            "agent_performance_summary": {
+                agent: {
+                    "accuracy": item.accuracy,
+                    "pnl_contribution": item.pnl_contribution,
+                    "sample_count": item.sample_count,
+                }
+                for agent, item in performance_summary.items()
+            },
             "audit_trail": {
                 "event_type": audit_record["event_type"],
                 "timestamp": audit_record["timestamp"],

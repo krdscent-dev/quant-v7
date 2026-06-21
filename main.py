@@ -169,7 +169,7 @@ def main() -> None:
     post_snapshot = version_control.snapshot("post_execution")
     audit_summary = audit_engine.summary()
 
-    print("symbol\talpha_score\trisk_score\tmacro_regime\tsector\tsector_strength\tconflict\tfinal_action\tfinal_allocation\tagent_opinions\tarbitration_reason\taudit_trail")
+    print("symbol\talpha_score\trisk_score\tmacro_regime\tsector\tsector_strength\tconflict\tfinal_weighted_decision\tfinal_allocation\tcurrent_agent_weights\tregime_adjusted_weights\tagent_performance_summary\tarbitration_reason\taudit_trail")
     for decision in v11_decisions:
         sector_payload = decision["sector_context"]
         print(
@@ -180,9 +180,11 @@ def main() -> None:
             f"{sector_payload['sector']}\t"
             f"{sector_payload['sector_strength']:.2f}\t"
             f"{decision['conflict_detected']}\t"
-            f"{decision['final_action']}\t"
+            f"{decision['final_weighted_decision']}\t"
             f"{decision['final_allocation']:.4f}\t"
-            f"{decision['agent_opinions']}\t"
+            f"{decision['current_agent_weights']}\t"
+            f"{decision['regime_adjusted_weights']}\t"
+            f"{decision['agent_performance_summary']}\t"
             f"{decision['arbitration_reason']}\t"
             f"{decision['audit_trail']['event_type']}@{decision['audit_trail']['timestamp']}"
         )
